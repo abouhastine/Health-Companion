@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: provider-independent-vectors
+      author: codex
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              ALTER TABLE document_chunks ALTER COLUMN embedding TYPE vector;
+              ALTER TABLE knowledge_chunks ALTER COLUMN embedding TYPE vector;

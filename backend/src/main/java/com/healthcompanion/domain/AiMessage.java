@@ -1,0 +1,2 @@
+package com.healthcompanion.domain; import jakarta.persistence.*; import java.time.*;
+@Entity @Table(name="ai_messages") public class AiMessage {@Id @GeneratedValue(strategy=GenerationType.IDENTITY)public Long id;@ManyToOne @JoinColumn(name="conversation_id")public AiConversation conversation;public String role;@Column(columnDefinition="TEXT")public String content;@Enumerated(EnumType.STRING)public AiQueryMode mode;@Column(name="created_at")public Instant createdAt=Instant.now();}

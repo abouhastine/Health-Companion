@@ -1,0 +1,1 @@
+package com.healthcompanion.repository; import com.healthcompanion.domain.*; import java.util.*; import org.springframework.data.jpa.repository.JpaRepository; public interface AiMessageRepository extends JpaRepository<AiMessage,Long>{List<AiMessage> findByConversationIdOrderByCreatedAt(Long id);}

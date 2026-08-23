@@ -1,0 +1,22 @@
+spring:
+  application.name: health-companion-api
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/health_companion}
+    username: ${DATABASE_USERNAME:health_companion}
+    password: ${DATABASE_PASSWORD:health_companion}
+  jpa:
+    hibernate.ddl-auto: validate
+    open-in-view: false
+  liquibase.change-log: classpath:db/changelog/db.changelog-master.yaml
+app:
+  jwt.secret: ${JWT_SECRET:change-this-demo-secret-to-at-least-32-characters}
+  jwt.expiration-minutes: 480
+  storage.directory: ${DOCUMENT_STORAGE_DIRECTORY:./var/documents}
+  storage.minio.endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  storage.minio.access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  storage.minio.secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  storage.minio.bucket: ${MINIO_BUCKET:health-documents}
+  ai:
+    chat-provider: ${AI_CHAT_PROVIDER:ollama}
+    embedding-provider: ${AI_EMBEDDING_PROVIDER:ollama}
+    top-k: 4
