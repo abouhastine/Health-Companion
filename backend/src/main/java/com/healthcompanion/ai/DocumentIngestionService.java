@@ -19,9 +19,15 @@ public class DocumentIngestionService {
   private final EmbeddingGateway embeddings;
   private final PgVectorStore vectors;
 
-  public DocumentIngestionService(LocalDocumentStorage storage, DocumentChunkRepository chunks,
-      EmbeddingGateway embeddings, PgVectorStore vectors) {
-    this.storage = storage; this.chunks = chunks; this.embeddings = embeddings; this.vectors = vectors;
+  public DocumentIngestionService(
+      LocalDocumentStorage storage,
+      DocumentChunkRepository chunks,
+      EmbeddingGateway embeddings,
+      PgVectorStore vectors) {
+    this.storage = storage;
+    this.chunks = chunks;
+    this.embeddings = embeddings;
+    this.vectors = vectors;
   }
 
   @Transactional
@@ -47,7 +53,8 @@ public class DocumentIngestionService {
       chunk.content = text.substring(from, Math.min(from + CHUNK_SIZE, text.length()));
       chunk.embeddingProfile = embeddings.profile();
       chunk = chunks.save(chunk);
-      vectors.storeDocumentEmbedding(chunk.id, embeddings.embed(chunk.content), chunk.embeddingProfile);
+      vectors.storeDocumentEmbedding(
+          chunk.id, embeddings.embed(chunk.content), chunk.embeddingProfile);
     }
     return nextChunkIndex;
   }

@@ -1,2 +1,7 @@
 package com.healthcompanion.domain;
-public enum AppointmentStatus { CONFIRMED, CANCELLED, COMPLETED }
+
+public enum AppointmentStatus {
+  CONFIRMED,
+  CANCELLED,
+  COMPLETED
+}

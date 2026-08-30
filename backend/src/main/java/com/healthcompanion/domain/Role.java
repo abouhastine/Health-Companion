@@ -1,2 +1,6 @@
 package com.healthcompanion.domain;
-public enum Role { PATIENT, ADMIN }
+
+public enum Role {
+  PATIENT,
+  ADMIN
+}

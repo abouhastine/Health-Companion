@@ -1,2 +1,70 @@
-package com.healthcompanion.ai; import com.healthcompanion.domain.*; import com.healthcompanion.repository.*; import org.springframework.http.HttpStatus; import org.springframework.stereotype.Service; import org.springframework.web.server.ResponseStatusException;
-@Service public class ConversationService {private final AiConversationRepository conversations;private final AiMessageRepository messages;private final UserRepository users;private final MedicalDocumentRepository documents;public ConversationService(AiConversationRepository c,AiMessageRepository m,UserRepository u,MedicalDocumentRepository d){conversations=c;messages=m;users=u;documents=d;}public AiConversation resolve(long patientId,Long conversationId,Long documentId){if(conversationId!=null){var c=conversations.findByIdAndPatientId(conversationId,patientId).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));if(documentId!=null&&(c.document==null||!documentId.equals(c.document.id)))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Conversation is scoped to another document");return c;}var c=new AiConversation();c.patient=users.getReferenceById(patientId);c.document=documentId==null?null:documents.findByIdAndPatientId(documentId,patientId).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND));return conversations.save(c);}public void add(AiConversation c,String role,String content,AiQueryMode mode){var m=new AiMessage();m.conversation=c;m.role=role;m.content=content;m.mode=mode;messages.save(m);}public java.util.List<AiMessage> history(long patientId,long id){resolve(patientId,id,null);return messages.findByConversationIdOrderByCreatedAt(id);}public String promptHistory(long patientId,long id){var all=history(patientId,id);var from=Math.max(0,all.size()-8);return all.subList(from,all.size()).stream().map(m->m.role+": "+m.content).reduce("",(a,b)->a+"\n"+b);}}
+package com.healthcompanion.ai;
+
+import com.healthcompanion.domain.*;
+import com.healthcompanion.repository.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+@Service
+public class ConversationService {
+  private final AiConversationRepository conversations;
+  private final AiMessageRepository messages;
+  private final UserRepository users;
+  private final MedicalDocumentRepository documents;
+
+  public ConversationService(
+      AiConversationRepository c,
+      AiMessageRepository m,
+      UserRepository u,
+      MedicalDocumentRepository d) {
+    conversations = c;
+    messages = m;
+    users = u;
+    documents = d;
+  }
+
+  public AiConversation resolve(long patientId, Long conversationId, Long documentId) {
+    if (conversationId != null) {
+      var c =
+          conversations
+              .findByIdAndPatientId(conversationId, patientId)
+              .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+      if (documentId != null && (c.document == null || !documentId.equals(c.document.id)))
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Conversation is scoped to another document");
+      return c;
+    }
+    var c = new AiConversation();
+    c.patient = users.getReferenceById(patientId);
+    c.document =
+        documentId == null
+            ? null
+            : documents
+                .findByIdAndPatientId(documentId, patientId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    return conversations.save(c);
+  }
+
+  public void add(AiConversation c, String role, String content, AiQueryMode mode) {
+    var m = new AiMessage();
+    m.conversation = c;
+    m.role = role;
+    m.content = content;
+    m.mode = mode;
+    messages.save(m);
+  }
+
+  public java.util.List<AiMessage> history(long patientId, long id) {
+    resolve(patientId, id, null);
+    return messages.findByConversationIdOrderByCreatedAt(id);
+  }
+
+  public String promptHistory(long patientId, long id) {
+    var all = history(patientId, id);
+    var from = Math.max(0, all.size() - 8);
+    return all.subList(from, all.size()).stream()
+        .map(m -> m.role + ": " + m.content)
+        .reduce("", (a, b) -> a + "\n" + b);
+  }
+}

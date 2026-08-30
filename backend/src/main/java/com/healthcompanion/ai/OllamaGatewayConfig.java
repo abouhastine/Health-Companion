@@ -22,23 +22,65 @@ public class OllamaGatewayConfig {
     var client = HttpClient.newHttpClient();
     var json = new ObjectMapper();
     return new LlmGateway() {
-      @Override public String generate(String systemInstruction, String context, String question) {
+      @Override
+      public String generate(String systemInstruction, String context, String question) {
         try {
-          var body = json.writeValueAsString(Map.of("model", model, "stream", false, "messages", List.of(
-              Map.of("role", "system", "content", systemInstruction + "\n" + context),
-              Map.of("role", "user", "content", question))));
-          var request = HttpRequest.newBuilder(URI.create(baseUrl + "/api/chat")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body)).build();
-          return json.readTree(client.send(request, HttpResponse.BodyHandlers.ofString()).body()).path("message").path("content").asText();
-        } catch (Exception exception) { throw new IllegalStateException("Ollama request failed", exception); }
+          var body =
+              json.writeValueAsString(
+                  Map.of(
+                      "model",
+                      model,
+                      "stream",
+                      false,
+                      "messages",
+                      List.of(
+                          Map.of("role", "system", "content", systemInstruction + "\n" + context),
+                          Map.of("role", "user", "content", question))));
+          var request =
+              HttpRequest.newBuilder(URI.create(baseUrl + "/api/chat"))
+                  .header("Content-Type", "application/json")
+                  .POST(HttpRequest.BodyPublishers.ofString(body))
+                  .build();
+          return json.readTree(client.send(request, HttpResponse.BodyHandlers.ofString()).body())
+              .path("message")
+              .path("content")
+              .asText();
+        } catch (Exception exception) {
+          throw new IllegalStateException("Ollama request failed", exception);
+        }
       }
-      @Override public void generateStream(String systemInstruction, String context, String question, java.util.function.Consumer<String> onToken) {
+
+      @Override
+      public void generateStream(
+          String systemInstruction,
+          String context,
+          String question,
+          java.util.function.Consumer<String> onToken) {
         try {
-          var body = json.writeValueAsString(Map.of("model", model, "stream", true, "messages", List.of(
-              Map.of("role", "system", "content", systemInstruction + "\n" + context),
-              Map.of("role", "user", "content", question))));
-          var request = HttpRequest.newBuilder(URI.create(baseUrl + "/api/chat")).header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body)).build();
-          for (var line : client.send(request, HttpResponse.BodyHandlers.ofLines()).body().toList()) {var content=json.readTree(line).path("message").path("content").asText();if(!content.isEmpty())onToken.accept(content);}
-        } catch (Exception exception) { throw new IllegalStateException("Ollama streaming request failed", exception); }
+          var body =
+              json.writeValueAsString(
+                  Map.of(
+                      "model",
+                      model,
+                      "stream",
+                      true,
+                      "messages",
+                      List.of(
+                          Map.of("role", "system", "content", systemInstruction + "\n" + context),
+                          Map.of("role", "user", "content", question))));
+          var request =
+              HttpRequest.newBuilder(URI.create(baseUrl + "/api/chat"))
+                  .header("Content-Type", "application/json")
+                  .POST(HttpRequest.BodyPublishers.ofString(body))
+                  .build();
+          for (var line :
+              client.send(request, HttpResponse.BodyHandlers.ofLines()).body().toList()) {
+            var content = json.readTree(line).path("message").path("content").asText();
+            if (!content.isEmpty()) onToken.accept(content);
+          }
+        } catch (Exception exception) {
+          throw new IllegalStateException("Ollama streaming request failed", exception);
+        }
       }
     };
   }
@@ -51,18 +93,32 @@ public class OllamaGatewayConfig {
     var client = HttpClient.newHttpClient();
     var json = new ObjectMapper();
     return new EmbeddingGateway() {
-      @Override public float[] embed(String text) {
+      @Override
+      public float[] embed(String text) {
         try {
           var body = json.writeValueAsString(Map.of("model", model, "input", text));
-          var request = HttpRequest.newBuilder(URI.create(baseUrl + "/api/embed"))
-              .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body)).build();
-          var values = json.readTree(client.send(request, HttpResponse.BodyHandlers.ofString()).body()).path("embeddings").path(0);
+          var request =
+              HttpRequest.newBuilder(URI.create(baseUrl + "/api/embed"))
+                  .header("Content-Type", "application/json")
+                  .POST(HttpRequest.BodyPublishers.ofString(body))
+                  .build();
+          var values =
+              json.readTree(client.send(request, HttpResponse.BodyHandlers.ofString()).body())
+                  .path("embeddings")
+                  .path(0);
           var result = new float[values.size()];
-          for (var index = 0; index < result.length; index++) result[index] = (float) values.get(index).asDouble();
+          for (var index = 0; index < result.length; index++)
+            result[index] = (float) values.get(index).asDouble();
           return result;
-        } catch (Exception exception) { throw new IllegalStateException("Ollama embedding request failed", exception); }
+        } catch (Exception exception) {
+          throw new IllegalStateException("Ollama embedding request failed", exception);
+        }
       }
-      @Override public String profile() { return "ollama:" + model; }
+
+      @Override
+      public String profile() {
+        return "ollama:" + model;
+      }
     };
   }
 }
