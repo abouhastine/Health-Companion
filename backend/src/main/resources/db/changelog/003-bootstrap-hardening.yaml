@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: bootstrap-hardening-indexes-and-constraints
+      author: codex
+      preConditions:
+        - onFail: HALT
+        - dbms:
+            type: postgresql
+      changes:
+        - createIndex:
+            tableName: appointment_slots
+            indexName: idx_appointment_slots_practitioner_start
+            columns:
+              - column:
+                  name: practitioner_id
+              - column:
+                  name: start_at
+        - createIndex:
+            tableName: appointments
+            indexName: idx_appointments_patient_created
+            columns:
+              - column:
+                  name: patient_id
+              - column:
+                  name: created_at
+        - createIndex:
+            tableName: medical_documents
+            indexName: idx_medical_documents_patient_date
+            columns:
+              - column:
+                  name: patient_id
+              - column:
+                  name: document_date
+        - createIndex:
+            tableName: ai_conversations
+            indexName: idx_ai_conversations_patient_created
+            columns:
+              - column:
+                  name: patient_id
+              - column:
+                  name: created_at
+        - createIndex:
+            tableName: ai_messages
+            indexName: idx_ai_messages_conversation_created
+            columns:
+              - column:
+                  name: conversation_id
+              - column:
+                  name: created_at
+        - addUniqueConstraint:
+            tableName: document_chunks
+            columnNames: document_id, chunk_index
+            constraintName: uk_document_chunks_document_index
+        - sql:
+            sql: >-
+              ALTER TABLE appointment_slots
+              ADD CONSTRAINT chk_appointment_slots_time_order
+              CHECK (end_at > start_at)

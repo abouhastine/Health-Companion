@@ -1,7 +1,11 @@
 package com.healthcompanion.api;
 
+import com.healthcompanion.appointments.AppointmentLifecycleService;
 import com.healthcompanion.domain.*;
 import com.healthcompanion.repository.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -16,23 +20,31 @@ public class AppointmentController {
   private final AppointmentRepository appointments;
   private final AppointmentSlotRepository slots;
   private final UserRepository users;
+  private final AppointmentLifecycleService lifecycle;
 
   public AppointmentController(
-      AppointmentRepository a, AppointmentSlotRepository s, UserRepository u) {
+      AppointmentRepository a,
+      AppointmentSlotRepository s,
+      UserRepository u,
+      AppointmentLifecycleService lifecycle) {
     appointments = a;
     slots = s;
     users = u;
+    this.lifecycle = lifecycle;
   }
 
   @GetMapping("/me")
-  public List<Appointment> mine(Authentication auth) {
-    return appointments.findByPatientIdOrderBySlotStartAtDesc((Long) auth.getPrincipal());
+  public List<AppointmentResponse> mine(Authentication auth) {
+    lifecycle.completePastAppointments();
+    return appointments.findByPatientIdOrderBySlotStartAtDesc((Long) auth.getPrincipal()).stream()
+        .map(AppointmentResponse::from)
+        .toList();
   }
 
   @PostMapping
   @Transactional
   @ResponseStatus(HttpStatus.CREATED)
-  public Appointment book(Authentication auth, @RequestBody Booking r) {
+  public AppointmentResponse book(Authentication auth, @Valid @RequestBody Booking r) {
     var slot =
         slots
             .lockById(r.slotId())
@@ -48,11 +60,12 @@ public class AppointmentController {
     a.slot = slot;
     a.reason = r.reason();
     slot.available = false;
-    return appointments.save(a);
+    return AppointmentResponse.from(appointments.save(a));
   }
 
   @DeleteMapping("/{id}")
   @Transactional
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   public void cancel(Authentication auth, @PathVariable Long id) {
     var a =
         appointments
@@ -66,5 +79,5 @@ public class AppointmentController {
     a.slot.available = true;
   }
 
-  public record Booking(Long slotId, String reason) {}
+  public record Booking(@NotNull Long slotId, @Size(max = 1000) String reason) {}
 }

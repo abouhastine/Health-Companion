@@ -41,10 +41,14 @@ public class DocumentIngestionService {
         stripper.setEndPage(page);
         chunkIndex = storePageChunks(document, page, chunkIndex, stripper.getText(pdf));
       }
+      if (chunkIndex == 0)
+        throw new IOException("The PDF does not contain extractable text for RAG indexing");
     }
   }
 
   private int storePageChunks(MedicalDocument document, int page, int nextChunkIndex, String text) {
+    text = text.trim();
+    if (text.isEmpty()) return nextChunkIndex;
     for (var from = 0; from < text.length(); from += CHUNK_STEP) {
       var chunk = new DocumentChunk();
       chunk.document = document;

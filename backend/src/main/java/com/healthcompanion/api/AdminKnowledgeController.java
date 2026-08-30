@@ -1,6 +1,7 @@
 package com.healthcompanion.api;
 
 import com.healthcompanion.ai.MedicalKnowledgeIngestionService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +15,7 @@ public class AdminKnowledgeController {
   }
 
   @PostMapping
-  public Result ingest(@RequestBody Request r) {
+  public Result ingest(@Valid @RequestBody Request r) {
     return new Result(
         ingestion.ingest(r.source(), r.topic(), r.language(), r.version(), r.content()));
   }

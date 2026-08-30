@@ -42,3 +42,7 @@ target/
 backend/target/
 web-app/node_modules/
 web-app/dist/
+web-app/coverage/
+*.tsbuildinfo
+backend/var/
+var/

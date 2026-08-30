@@ -2,6 +2,7 @@ package com.healthcompanion.api;
 
 import com.healthcompanion.domain.*;
 import com.healthcompanion.repository.*;
+import java.time.LocalDateTime;
 import java.util.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -36,12 +37,16 @@ public class PractitionerController {
   @GetMapping("/{id}/slots")
   public List<AppointmentSlot> slots(@PathVariable Long id) {
     one(id);
-    return slots.findByPractitionerIdAndAvailableTrueOrderByStartAt(id);
+    return slots.findByPractitionerIdAndAvailableTrueAndStartAtAfterOrderByStartAt(
+        id, LocalDateTime.now());
   }
 
   private void addNextAvailable(Practitioner practitioner) {
     practitioner.nextAvailableAt =
-        slots.findByPractitionerIdAndAvailableTrueOrderByStartAt(practitioner.id).stream()
+        slots
+            .findByPractitionerIdAndAvailableTrueAndStartAtAfterOrderByStartAt(
+                practitioner.id, LocalDateTime.now())
+            .stream()
             .findFirst()
             .map(slot -> slot.startAt)
             .orElse(null);

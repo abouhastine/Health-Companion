@@ -5,3 +5,6 @@ app:
     ollama-base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
     chat-model: ${OLLAMA_CHAT_MODEL:qwen3:4b}
     embedding-model: ${OLLAMA_EMBEDDING_MODEL:qwen3-embedding:0.6b}
+    temperature: ${AI_TEMPERATURE:0.2}
+    context-size: ${OLLAMA_CONTEXT_SIZE:4096}
+    keep-alive: ${OLLAMA_KEEP_ALIVE:10m}

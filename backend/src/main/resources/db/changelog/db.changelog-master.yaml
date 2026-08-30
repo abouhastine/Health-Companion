@@ -3,3 +3,7 @@ databaseChangeLog:
       file: db/changelog/001-initial-schema.yaml
   - include:
       file: db/changelog/002-provider-independent-vectors.yaml
+  - include:
+      file: db/changelog/003-bootstrap-hardening.yaml
+  - include:
+      file: db/changelog/004-mvp-completion.yaml

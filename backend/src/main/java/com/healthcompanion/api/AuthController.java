@@ -57,14 +57,15 @@ public class AuthController {
   }
 
   public record RegisterRequest(
-      @NotBlank String firstName,
-      @NotBlank String lastName,
-      @Email String email,
-      String phone,
-      @Size(min = 8) String password,
-      @NotBlank String confirmPassword) {}
+      @NotBlank @Size(max = 100) String firstName,
+      @NotBlank @Size(max = 100) String lastName,
+      @NotBlank @Email @Size(max = 255) String email,
+      @Size(max = 50) String phone,
+      @NotBlank @Size(min = 8, max = 100) String password,
+      @NotBlank @Size(max = 100) String confirmPassword) {}
 
-  public record LoginRequest(@Email String email, @NotBlank String password) {}
+  public record LoginRequest(
+      @NotBlank @Email @Size(max = 255) String email, @NotBlank String password) {}
 
   public record AuthResponse(
       String token, Long id, String firstName, String lastName, String email, Role role) {}

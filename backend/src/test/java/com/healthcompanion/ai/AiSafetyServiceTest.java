@@ -21,4 +21,16 @@ class AiSafetyServiceTest {
   void allowsExplanation() {
     assertNull(safety.safeQuestion("What does ferritin mean?"));
   }
+
+  @Test
+  void rejectsUnsafeGeneratedAdvice() {
+    assertTrue(safety.unsafeAnswer("You should take a higher dose immediately."));
+  }
+
+  @Test
+  void allowsGroundedRangeExplanation() {
+    assertFalse(
+        safety.unsafeAnswer(
+            "The report shows ferritin below its printed range; this does not establish a diagnosis."));
+  }
 }

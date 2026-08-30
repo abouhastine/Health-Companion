@@ -23,23 +23,29 @@ public class DocumentController {
   }
 
   @GetMapping("/me")
-  public List<MedicalDocument> mine(Authentication a) {
-    return docs.findByPatientIdOrderByDocumentDateDesc((Long) a.getPrincipal());
+  public List<DocumentResponse> mine(Authentication a) {
+    return docs.findByPatientIdOrderByDocumentDateDesc((Long) a.getPrincipal()).stream()
+        .map(DocumentResponse::from)
+        .toList();
   }
 
   @GetMapping("/{id}")
-  public MedicalDocument one(Authentication a, @PathVariable Long id) {
-    return owned(a, id);
+  public DocumentResponse one(Authentication a, @PathVariable Long id) {
+    return DocumentResponse.from(owned(a, id));
   }
 
   @GetMapping("/{id}/download")
   public ResponseEntity<byte[]> download(Authentication a, @PathVariable Long id)
       throws IOException {
     var d = owned(a, id);
+    if (d.status != DocumentStatus.AVAILABLE)
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, "The document is not available for download");
     var r = storage.load(d.storagePath);
+    var safeTitle = d.title.replaceAll("[\\r\\n\\\"]", "_");
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_PDF)
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + d.title + ".pdf\"")
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + safeTitle + ".pdf\"")
         .body(r.bytes());
   }
 

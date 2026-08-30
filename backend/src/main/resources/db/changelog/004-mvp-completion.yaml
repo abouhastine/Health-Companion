@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: mvp-document-status-and-constraints
+      author: codex
+      preConditions:
+        - onFail: HALT
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              ALTER TABLE medical_documents
+                ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE';
+              ALTER TABLE medical_documents
+                ALTER COLUMN status SET DEFAULT 'PROCESSING';
+              ALTER TABLE medical_documents
+                ADD CONSTRAINT chk_medical_documents_status
+                CHECK (status IN ('PROCESSING', 'AVAILABLE', 'FAILED'));
+              ALTER TABLE appointments
+                ADD CONSTRAINT chk_appointments_status
+                CHECK (status IN ('CONFIRMED', 'CANCELLED', 'COMPLETED'));
+              ALTER TABLE users
+                ADD CONSTRAINT chk_users_role
+                CHECK (role IN ('PATIENT', 'ADMIN'));

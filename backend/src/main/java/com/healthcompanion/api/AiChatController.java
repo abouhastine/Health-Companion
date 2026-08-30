@@ -2,6 +2,8 @@ package com.healthcompanion.api;
 
 import com.healthcompanion.ai.*;
 import com.healthcompanion.domain.AiQueryMode;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import java.io.IOException;
 import java.util.List;
 import org.springframework.http.MediaType;
@@ -26,15 +28,31 @@ public class AiChatController {
   }
 
   @PostMapping("/chat")
-  public ChatResponse chat(Authentication auth, @RequestBody ChatRequest r) {
+  public ChatResponse chat(Authentication auth, @Valid @RequestBody ChatRequest r) {
     return answer((Long) auth.getPrincipal(), r);
+  }
+
+  @PostMapping("/documents/{documentId}/chat")
+  public ChatResponse documentChat(
+      Authentication auth,
+      @PathVariable @Positive long documentId,
+      @Valid @RequestBody ChatRequest request) {
+    if (request.documentId() != null && request.documentId() != documentId)
+      throw new org.springframework.web.server.ResponseStatusException(
+          org.springframework.http.HttpStatus.BAD_REQUEST,
+          "Request document does not match the selected document");
+    return answer(
+        (Long) auth.getPrincipal(),
+        new ChatRequest(request.question(), documentId, request.conversationId()));
   }
 
   @PostMapping(
       value = "/documents/{documentId}/chat/stream",
       produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter stream(
-      Authentication auth, @PathVariable long documentId, @RequestBody ChatRequest r) {
+      Authentication auth,
+      @PathVariable long documentId,
+      @Valid @RequestBody ChatRequest r) {
     var patient = (Long) auth.getPrincipal();
     var emitter = new SseEmitter(0L);
     java.util.concurrent.CompletableFuture.runAsync(
@@ -47,7 +65,7 @@ public class AiChatController {
               emitter.send(SseEmitter.event().name("token").data(blocked));
               answer =
                   new HealthAssistantService.AiResponse(
-                      AiQueryMode.GENERAL, blocked, List.of(), true);
+                      AiQueryMode.GENERAL, blocked, List.of(), true, true);
             } else
               answer =
                   assistant.streamDocument(
@@ -66,7 +84,7 @@ public class AiChatController {
                       });
             conversations.add(c, "USER", r.question(), answer.mode());
             conversations.add(c, "ASSISTANT", answer.answer(), answer.mode());
-            audit.record(patient, c, answer.mode(), blocked != null);
+            audit.record(patient, c, answer.mode(), blocked != null || answer.safetyBlocked());
             emitter.send(SseEmitter.event().name("complete").data(new ChatResponse(c.id, answer)));
             emitter.complete();
           } catch (Exception exception) {
@@ -89,10 +107,11 @@ public class AiChatController {
                     c.id,
                     r.question(),
                     conversations.promptHistory(patient, c.id)))
-            : new HealthAssistantService.AiResponse(AiQueryMode.GENERAL, blocked, List.of(), true);
+            : new HealthAssistantService.AiResponse(
+                AiQueryMode.GENERAL, blocked, List.of(), true, true);
     conversations.add(c, "USER", r.question(), answer.mode());
     conversations.add(c, "ASSISTANT", answer.answer(), answer.mode());
-    audit.record(patient, c, answer.mode(), blocked != null);
+    audit.record(patient, c, answer.mode(), blocked != null || answer.safetyBlocked());
     return new ChatResponse(c.id, answer);
   }
 
@@ -101,7 +120,10 @@ public class AiChatController {
     return conversations.history((Long) auth.getPrincipal(), id);
   }
 
-  public record ChatRequest(String question, Long documentId, Long conversationId) {}
+  public record ChatRequest(
+      @NotBlank @Size(max = 4000) String question,
+      @Positive Long documentId,
+      @Positive Long conversationId) {}
 
   public record ChatResponse(Long conversationId, HealthAssistantService.AiResponse response) {}
 }

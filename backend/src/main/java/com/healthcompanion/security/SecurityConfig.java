@@ -1,7 +1,9 @@
 package com.healthcompanion.security;
 
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -30,10 +32,14 @@ public class SecurityConfig {
             a ->
                 a.requestMatchers("/api/auth/**", "/actuator/**")
                     .permitAll()
-                    .requestMatchers("GET", "/api/practitioners/**")
+                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/practitioners/**")
                     .permitAll()
                     .requestMatchers("/api/admin/**")
                     .hasRole("ADMIN")
+                    .requestMatchers("/api/appointments/**", "/api/documents/**", "/api/ai/**")
+                    .hasRole("PATIENT")
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(jwt, UsernamePasswordAuthenticationFilter.class)
@@ -41,11 +47,14 @@ public class SecurityConfig {
   }
 
   @Bean
-  CorsConfigurationSource corsConfigurationSource() {
+  CorsConfigurationSource corsConfigurationSource(
+      @Value("${app.cors.allowed-origins}") List<String> allowedOrigins) {
     var configuration = new CorsConfiguration();
-    configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
-    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    configuration.setAllowedOrigins(allowedOrigins);
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    configuration.setExposedHeaders(List.of("Content-Disposition"));
+    configuration.setMaxAge(3600L);
     var source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
     return source;
