@@ -2,6 +2,7 @@ package com.healthcompanion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.healthcompanion.ai.PgVectorStore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,6 +40,7 @@ class PostgresLiquibaseIT {
   }
 
   @Autowired JdbcTemplate jdbc;
+  @Autowired PgVectorStore vectors;
 
   @Test
   void liquibaseBootstrapsPgvectorSchemaValidatedByHibernate() {
@@ -46,7 +48,7 @@ class PostgresLiquibaseIT {
             jdbc.queryForObject(
                 "select count(*) from databasechangelog where exectype = 'EXECUTED'",
                 Integer.class))
-        .isEqualTo(4);
+        .isEqualTo(5);
     assertThat(
             jdbc.queryForObject(
                 "select count(*) from pg_extension where extname = 'vector'", Integer.class))
@@ -61,5 +63,30 @@ class PostgresLiquibaseIT {
                 "select count(*) from pg_indexes where indexname = 'idx_medical_documents_patient_date'",
                 Integer.class))
         .isEqualTo(1);
+  }
+
+  @Test
+  void retrievesOnlyEmbeddingsWithTheSameProfileAndDimension() {
+    var threeDimensions = knowledgeChunk("shared-profile", 3);
+    var fourDimensions = knowledgeChunk("shared-profile", 4);
+    vectors.storeKnowledgeEmbedding(threeDimensions, new float[] {1, 0, 0}, "shared-profile");
+    vectors.storeKnowledgeEmbedding(fourDimensions, new float[] {1, 0, 0, 0}, "shared-profile");
+
+    assertThat(vectors.nearestKnowledgeChunks(new float[] {1, 0, 0}, "shared-profile", 4))
+        .containsExactly(threeDimensions);
+    assertThat(vectors.nearestKnowledgeChunks(new float[] {1, 0, 0, 0}, "shared-profile", 4))
+        .containsExactly(fourDimensions);
+  }
+
+  private long knowledgeChunk(String profile, int dimension) {
+    return jdbc.queryForObject(
+        "insert into knowledge_chunks (source, chunk_index, content, embedding_profile, embedding_dimension) "
+            + "values (?, ?, ?, ?, ?) returning id",
+        Long.class,
+        "Integration test",
+        dimension,
+        "Dimension isolation test",
+        profile,
+        dimension);
   }
 }

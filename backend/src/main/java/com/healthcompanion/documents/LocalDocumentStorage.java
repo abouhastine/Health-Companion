@@ -49,12 +49,12 @@ public class LocalDocumentStorage {
       bucket();
       try (var stream =
           minio.getObject(GetObjectArgs.builder().bucket(bucket).object(name).build())) {
-        return new Resource(stream.readAllBytes(), name);
+        return new Resource(stream.readAllBytes());
       }
     } catch (Exception e) {
       throw new IOException("Unable to load document from MinIO", e);
     }
   }
 
-  public record Resource(byte[] bytes, String name) {}
+  public record Resource(byte[] bytes) {}
 }

@@ -25,7 +25,7 @@ with the repository. This is an external acceptance activity rather than missing
 | React project | Complete | React 18, strict TypeScript, Vite, MUI, Router, Query provider, Hook Form, Zod, Vitest |
 | PostgreSQL | Complete | PostgreSQL 16/pgvector runtime and Testcontainers integration |
 | Liquibase | Complete | Four forward-only changesets; Hibernate uses `ddl-auto=validate` |
-| Docker Compose | Complete | Health-checked pgvector PostgreSQL and MinIO services |
+| Docker Compose | Complete | pgvector PostgreSQL healthcheck and MinIO object-storage service |
 | Authentication foundation | Complete | Stateless Security filter chain, BCrypt, signed/expiring JWT, database-backed roles |
 | Base UI layout | Complete | Reusable MUI theme, application shell, error boundary, providers, role-aware navigation |
 
@@ -75,7 +75,7 @@ with the repository. This is an external acceptance activity rather than missing
 | PDF parsing | Complete | Page-aware Apache PDFBox extraction |
 | Chunking | Complete | Overlapping page chunks with unique document/chunk index |
 | Embeddings | Complete | Provider-neutral gateway; Ollama, OpenAI, and deterministic local-test implementations |
-| pgvector | Complete | Provider-independent vectors, embedding-profile isolation, scoped cosine retrieval |
+| pgvector | Complete | Dimension-agnostic vectors, profile/dimension isolation, scoped cosine retrieval |
 | LLM gateway | Complete | Provider-neutral chat/stream interface with Ollama and OpenAI adapters |
 | RAG retrieval | Complete | Authorization before document retrieval; separate patient-document and approved-knowledge scopes |
 | Ask About This Result | Complete | Non-streaming REST and SSE endpoints plus progressive React conversation UI |
@@ -135,6 +135,9 @@ configurable, and routing/retrieval/business logic is provider-independent.
     practitioner/slot management, booking, cross-patient denial, real MinIO PDF upload/download,
     PDFBox ingestion, pgvector retrieval, two-turn RAG, sources, conversation ownership, and
     cancellation.
+17. The fixed `vector(768)` schema only exercised the deterministic test embedder and could reject
+    configured Ollama/OpenAI dimensions → vectors are now dimension-agnostic, each chunk persists
+    its embedding dimension, and retrieval requires both matching provider profile and dimension.
 
 ## Verification evidence
 

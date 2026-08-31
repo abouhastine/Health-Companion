@@ -20,6 +20,9 @@ public class KnowledgeChunk {
   @Column(name = "embedding_profile")
   public String embeddingProfile;
 
+  @Column(name = "embedding_dimension")
+  public Integer embeddingDimension;
+
   @Column(name = "rag_scope")
   public String ragScope = "MEDICAL_KNOWLEDGE";
 }

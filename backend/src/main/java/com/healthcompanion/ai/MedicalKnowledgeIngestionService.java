@@ -30,8 +30,10 @@ public class MedicalKnowledgeIngestionService {
       c.chunkIndex = n++;
       c.content = content.substring(from, Math.min(from + 3000, content.length()));
       c.embeddingProfile = embeddings.profile();
+      var embedding = embeddings.embed(c.content);
+      c.embeddingDimension = embedding.length;
       c = chunks.save(c);
-      vectors.storeKnowledgeEmbedding(c.id, embeddings.embed(c.content), c.embeddingProfile);
+      vectors.storeKnowledgeEmbedding(c.id, embedding, c.embeddingProfile);
     }
     return n;
   }

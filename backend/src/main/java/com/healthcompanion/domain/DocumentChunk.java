@@ -24,6 +24,9 @@ public class DocumentChunk {
   @Column(name = "embedding_profile")
   public String embeddingProfile;
 
+  @Column(name = "embedding_dimension")
+  public Integer embeddingDimension;
+
   @Column(name = "rag_scope")
   public String ragScope = "PATIENT_DOCUMENT";
 }

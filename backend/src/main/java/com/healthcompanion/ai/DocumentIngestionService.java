@@ -56,9 +56,11 @@ public class DocumentIngestionService {
       chunk.chunkIndex = nextChunkIndex++;
       chunk.content = text.substring(from, Math.min(from + CHUNK_SIZE, text.length()));
       chunk.embeddingProfile = embeddings.profile();
+      var embedding = embeddings.embed(chunk.content);
+      chunk.embeddingDimension = embedding.length;
       chunk = chunks.save(chunk);
       vectors.storeDocumentEmbedding(
-          chunk.id, embeddings.embed(chunk.content), chunk.embeddingProfile);
+          chunk.id, embedding, chunk.embeddingProfile);
     }
     return nextChunkIndex;
   }
