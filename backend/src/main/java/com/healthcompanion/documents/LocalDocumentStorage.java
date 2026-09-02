@@ -56,5 +56,14 @@ public class LocalDocumentStorage {
     }
   }
 
+  public void delete(String name) throws IOException {
+    try {
+      bucket();
+      minio.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(name).build());
+    } catch (Exception e) {
+      throw new IOException("Unable to delete document from MinIO", e);
+    }
+  }
+
   public record Resource(byte[] bytes) {}
 }

@@ -79,5 +79,32 @@ public class AppointmentController {
     a.slot.available = true;
   }
 
+  @PutMapping("/{id}")
+  @Transactional
+  public AppointmentResponse reschedule(
+      Authentication auth, @PathVariable Long id, @Valid @RequestBody Booking request) {
+    var appointment =
+        appointments
+            .lockById(id)
+            .filter(value -> value.patient.id.equals(auth.getPrincipal()))
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    if (appointment.status != AppointmentStatus.CONFIRMED
+        || !appointment.slot.startAt.isAfter(LocalDateTime.now()))
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Only future confirmed appointments can be rescheduled");
+    var nextSlot =
+        slots
+            .lockById(request.slotId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    if (!nextSlot.available || !nextSlot.startAt.isAfter(LocalDateTime.now()))
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "New slot is not available");
+    appointment.slot.available = true;
+    nextSlot.available = false;
+    appointment.slot = nextSlot;
+    appointment.practitioner = nextSlot.practitioner;
+    appointment.reason = request.reason();
+    return AppointmentResponse.from(appointments.save(appointment));
+  }
+
   public record Booking(@NotNull Long slotId, @Size(max = 1000) String reason) {}
 }

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, CardContent, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Chip, Stack, TextField, Typography } from '@mui/material';
+import { CalendarMonthOutlined, LocationOnOutlined, TranslateOutlined } from '@mui/icons-material';
 import { Link, useParams } from 'react-router-dom';
 import { ErrorMessage } from '../../components/ErrorMessage';
+import { EmptyState, PageHeader, SectionCard } from '../../components/ui';
 import { AppShell } from '../../layouts/AppShell';
 import { call } from '../../services/apiClient';
 import type { Practitioner, Slot } from '../../types/domain';
@@ -20,37 +22,54 @@ export function PractitionerListPage() {
 
   return (
     <AppShell>
-      <Typography variant="h4" gutterBottom>
-        Find a practitioner
-      </Typography>
+      <PageHeader
+        eyebrow="Care team"
+        title="Find a practitioner"
+        description="Explore available care and reserve a time that works for you."
+      />
       <ErrorMessage message={error} />
       {loading ? <Typography>Loading practitioners…</Typography> : null}
       {!loading && items.length === 0 ? (
-        <Typography color="text.secondary">No practitioners are available.</Typography>
+        <EmptyState
+          title="No practitioners available"
+          description="Please check again later for updated availability."
+        />
       ) : null}
       <Stack spacing={2}>
         {items.map((item) => (
-          <Card key={item.id}>
-            <CardContent>
-              <Typography variant="h6">
-                Dr. {item.firstName} {item.lastName}
-              </Typography>
-              <Typography>
-                {item.specialty} · {item.organization}
-              </Typography>
-              <Typography color="text.secondary">
-                {item.address || 'Location available on request'}
-              </Typography>
-              <Typography color="text.secondary">
-                {item.nextAvailableAt
-                  ? `Next available: ${new Date(item.nextAvailableAt).toLocaleString()}`
-                  : 'No available appointment currently'}
-              </Typography>
-              <Button component={Link} to={`/practitioners/${item.id}`}>
+          <SectionCard key={item.id}>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              justifyContent="space-between"
+              spacing={2}
+            >
+              <Box>
+                <Typography variant="h6">
+                  Dr. {item.firstName} {item.lastName}
+                </Typography>
+                <Chip label={item.specialty} color="primary" variant="outlined" sx={{ mt: 1 }} />
+                <Typography sx={{ mt: 1 }}>
+                  {item.specialty} · {item.organization}
+                </Typography>
+                <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                  {item.address || 'Location available on request'}
+                </Typography>
+                <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                  {item.nextAvailableAt
+                    ? `Next available: ${new Date(item.nextAvailableAt).toLocaleString()}`
+                    : 'No available appointment currently'}
+                </Typography>
+              </Box>
+              <Button
+                component={Link}
+                to={`/practitioners/${item.id}`}
+                variant="contained"
+                startIcon={<CalendarMonthOutlined />}
+              >
                 View availability
               </Button>
-            </CardContent>
-          </Card>
+            </Stack>
+          </SectionCard>
         ))}
       </Stack>
     </AppShell>
@@ -92,40 +111,56 @@ export function PractitionerDetailPage() {
       {loading ? <Typography>Loading practitioner…</Typography> : null}
       {item && (
         <>
-          <Typography variant="h4">
-            Dr. {item.firstName} {item.lastName}
-          </Typography>
-          <Typography sx={{ mb: 1 }}>
-            {item.specialty} · {item.organization}
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 3 }}>
-            {item.address || 'Address available on request'} ·{' '}
-            {item.languages || 'Languages available on request'}
-          </Typography>
-          <TextField
-            fullWidth
-            label="Reason for visit (optional)"
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-            sx={{ mb: 2 }}
+          <PageHeader
+            eyebrow="Care provider"
+            title={`Dr. ${item.firstName} ${item.lastName}`}
+            description={`${item.specialty} · ${item.organization}`}
           />
-          <Typography variant="h6">Available appointments</Typography>
-          <ErrorMessage message={error} />
-          <Stack spacing={1} sx={{ mt: 1 }}>
-            {!loading && slots.length === 0 ? (
-              <Typography color="text.secondary">No future appointments are available.</Typography>
-            ) : null}
-            {slots.map((slot) => (
-              <Card key={slot.id}>
-                <CardContent>
-                  <Typography>{new Date(slot.startAt).toLocaleString()}</Typography>
-                  <Button variant="contained" onClick={() => book(slot.id)}>
-                    Book appointment
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </Stack>
+          <SectionCard title="Book an appointment">
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
+              <Chip
+                icon={<LocationOnOutlined />}
+                label={item.address || 'Address available on request'}
+                variant="outlined"
+              />
+              <Chip
+                icon={<TranslateOutlined />}
+                label={item.languages || 'Languages available on request'}
+                variant="outlined"
+              />
+            </Stack>
+            <TextField
+              fullWidth
+              label="Reason for visit (optional)"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              sx={{ mb: 3 }}
+            />
+            <Typography variant="h6">Available appointments</Typography>
+            <ErrorMessage message={error} />
+            <Stack spacing={1} sx={{ mt: 1 }}>
+              {!loading && slots.length === 0 ? (
+                <Typography color="text.secondary">
+                  No future appointments are available.
+                </Typography>
+              ) : null}
+              {slots.map((slot) => (
+                <SectionCard key={slot.id} sx={{ p: 2 }}>
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    justifyContent="space-between"
+                    alignItems={{ sm: 'center' }}
+                    spacing={1}
+                  >
+                    <Typography>{new Date(slot.startAt).toLocaleString()}</Typography>
+                    <Button variant="contained" onClick={() => book(slot.id)}>
+                      Book appointment
+                    </Button>
+                  </Stack>
+                </SectionCard>
+              ))}
+            </Stack>
+          </SectionCard>
         </>
       )}
     </AppShell>

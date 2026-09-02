@@ -1,12 +1,12 @@
 package com.healthcompanion.ai;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.*;
 
 @Configuration
 public class DeterministicEmbeddingGateway {
   @Bean
-  @ConditionalOnMissingBean(EmbeddingGateway.class)
+  @ConditionalOnProperty(name = "app.ai.embedding-provider", havingValue = "none")
   EmbeddingGateway gateway() {
     return new EmbeddingGateway() {
       public float[] embed(String text) {

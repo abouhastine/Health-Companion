@@ -11,9 +11,10 @@ import {
   Typography,
 } from '@mui/material';
 import { ErrorMessage } from '../../components/ErrorMessage';
+import { PageHeader } from '../../components/ui';
 import { AppShell } from '../../layouts/AppShell';
 import { call } from '../../services/apiClient';
-import type { Appointment, Practitioner, Slot, UserProfile } from '../../types/domain';
+import type { Appointment, Document, Practitioner, Slot, UserProfile } from '../../types/domain';
 
 const blankPractitioner = {
   firstName: '',
@@ -24,14 +25,27 @@ const blankPractitioner = {
   languages: '',
 };
 
+const blankUser = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  password: '',
+  role: 'PATIENT',
+};
+
 export function AdminPage() {
   const [patients, setPatients] = useState<UserProfile[]>([]);
+  const [accounts, setAccounts] = useState<UserProfile[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [practitioners, setPractitioners] = useState<Practitioner[]>([]);
   const [selected, setSelected] = useState<number>();
   const [slots, setSlots] = useState<Slot[]>([]);
   const [practitioner, setPractitioner] = useState(blankPractitioner);
   const [editing, setEditing] = useState<number>();
+  const [editingUser, setEditingUser] = useState<number>();
+  const [user, setUser] = useState(blankUser);
   const [slot, setSlot] = useState({ startAt: '', endAt: '' });
   const [upload, setUpload] = useState({
     patientId: '',
@@ -41,19 +55,31 @@ export function AdminPage() {
     documentDate: '',
     file: undefined as File | undefined,
   });
+  const [editingDocument, setEditingDocument] = useState<number>();
+  const [document, setDocument] = useState({
+    title: '',
+    documentType: 'LAB_RESULT',
+    documentDate: '',
+    practitionerId: '',
+  });
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
 
   const refresh = useCallback(async () => {
     try {
-      const [nextPatients, nextAppointments, nextPractitioners] = await Promise.all([
-        call<UserProfile[]>('/api/admin/patients'),
-        call<Appointment[]>('/api/admin/appointments'),
-        call<Practitioner[]>('/api/admin/practitioners'),
-      ]);
+      const [nextPatients, nextAccounts, nextAppointments, nextPractitioners, nextDocuments] =
+        await Promise.all([
+          call<UserProfile[]>('/api/admin/patients'),
+          call<UserProfile[]>('/api/admin/users'),
+          call<Appointment[]>('/api/admin/appointments'),
+          call<Practitioner[]>('/api/admin/practitioners'),
+          call<Document[]>('/api/admin/documents'),
+        ]);
       setPatients(nextPatients);
+      setAccounts(nextAccounts);
       setAppointments(nextAppointments);
       setPractitioners(nextPractitioners);
+      setDocuments(nextDocuments);
       setSelected((current) => current ?? nextPractitioners[0]?.id);
     } catch {
       setError('Unable to load back-office data.');
@@ -107,6 +133,26 @@ export function AdminPage() {
     }
   };
 
+  const saveUser = async () => {
+    try {
+      if (editingUser) {
+        const payload = { ...user, password: user.password || undefined };
+        await call(`/api/admin/users/${editingUser}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await call('/api/admin/users', { method: 'POST', body: JSON.stringify(user) });
+      }
+      setUser(blankUser);
+      setEditingUser(undefined);
+      setNotice('User saved.');
+      refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Unable to save user.');
+    }
+  };
+
   const saveUpload = async () => {
     if (!upload.file) {
       setError('Select a PDF document first.');
@@ -128,8 +174,41 @@ export function AdminPage() {
         documentDate: '',
         file: undefined,
       });
+      refresh();
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unable to upload document.');
+    }
+  };
+
+  const saveDocument = async () => {
+    if (!editingDocument) return;
+    try {
+      await call(`/api/admin/documents/${editingDocument}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          ...document,
+          practitionerId: document.practitionerId ? Number(document.practitionerId) : null,
+        }),
+      });
+      setEditingDocument(undefined);
+      setDocument({ title: '', documentType: 'LAB_RESULT', documentDate: '', practitionerId: '' });
+      setNotice('Document details saved.');
+      refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Unable to update document.');
+    }
+  };
+
+  const changeAppointmentStatus = async (id: number, status: Appointment['status']) => {
+    try {
+      await call(`/api/admin/appointments/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status }),
+      });
+      setNotice('Appointment updated.');
+      refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Unable to update appointment.');
     }
   };
 
@@ -138,12 +217,11 @@ export function AdminPage() {
 
   return (
     <AppShell>
-      <Typography variant="h4" gutterBottom>
-        Back office
-      </Typography>
-      <Typography color="text.secondary">
-        Manage practitioners, availability, patients, appointments, and patient documents.
-      </Typography>
+      <PageHeader
+        eyebrow="Administration"
+        title="Back office"
+        description="Manage practitioners, availability, patients, appointments and medical documents."
+      />
       <ErrorMessage message={error} />
       {notice && (
         <Alert severity="success" onClose={() => setNotice('')}>
@@ -151,7 +229,272 @@ export function AdminPage() {
         </Alert>
       )}
       <Stack spacing={4} sx={{ mt: 3 }}>
-        <Card>
+        <Card sx={{ borderRadius: 3 }}>
+          <CardContent>
+            <Typography variant="h6">User accounts</Typography>
+            <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>
+              Create and manage patient and administrator accounts. Password is optional when
+              editing.
+            </Typography>
+            <Stack spacing={1} sx={{ mt: 2 }}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                <TextField
+                  fullWidth
+                  required
+                  label="First name"
+                  value={user.firstName}
+                  onChange={(event) => setUser({ ...user, firstName: event.target.value })}
+                />
+                <TextField
+                  fullWidth
+                  required
+                  label="Last name"
+                  value={user.lastName}
+                  onChange={(event) => setUser({ ...user, lastName: event.target.value })}
+                />
+              </Stack>
+              <TextField
+                required
+                label="Email"
+                type="email"
+                value={user.email}
+                onChange={(event) => setUser({ ...user, email: event.target.value })}
+              />
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                <TextField
+                  fullWidth
+                  label="Phone"
+                  value={user.phone}
+                  onChange={(event) => setUser({ ...user, phone: event.target.value })}
+                />
+                <TextField
+                  fullWidth
+                  required={!editingUser}
+                  label={editingUser ? 'New password (optional)' : 'Password'}
+                  type="password"
+                  value={user.password}
+                  onChange={(event) => setUser({ ...user, password: event.target.value })}
+                />
+                <TextField
+                  select
+                  fullWidth
+                  label="Role"
+                  value={user.role}
+                  onChange={(event) => setUser({ ...user, role: event.target.value })}
+                >
+                  <MenuItem value="PATIENT">Patient</MenuItem>
+                  <MenuItem value="ADMIN">Administrator</MenuItem>
+                </TextField>
+              </Stack>
+              <Stack direction="row" spacing={1}>
+                <Button variant="contained" onClick={saveUser}>
+                  {editingUser ? 'Update user' : 'Create user'}
+                </Button>
+                {editingUser ? (
+                  <Button
+                    onClick={() => {
+                      setEditingUser(undefined);
+                      setUser(blankUser);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                ) : null}
+              </Stack>
+            </Stack>
+            <Divider sx={{ my: 2 }} />
+            <Stack spacing={1}>
+              {accounts.map((account) => (
+                <Stack
+                  key={account.id}
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1}
+                  alignItems={{ sm: 'center' }}
+                >
+                  <Typography sx={{ flexGrow: 1 }}>
+                    {account.firstName} {account.lastName} · {account.email} · {account.role}
+                  </Typography>
+                  <Button
+                    onClick={() => {
+                      setEditingUser(account.id);
+                      setUser({
+                        firstName: account.firstName,
+                        lastName: account.lastName,
+                        email: account.email,
+                        phone: account.phone || '',
+                        password: '',
+                        role: account.role,
+                      });
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    color="error"
+                    onClick={() => {
+                      if (window.confirm(`Delete ${account.email}?`))
+                        void call(`/api/admin/users/${account.id}`, { method: 'DELETE' })
+                          .then(refresh)
+                          .catch((cause) =>
+                            setError(
+                              cause instanceof Error ? cause.message : 'Unable to delete user.',
+                            ),
+                          );
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </Stack>
+              ))}
+            </Stack>
+          </CardContent>
+        </Card>
+        <Card sx={{ borderRadius: 3 }}>
+          <CardContent>
+            <Typography variant="h6">Document library</Typography>
+            <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>
+              Edit metadata, re-index a result after a provider change, or remove an unreferenced
+              document.
+            </Typography>
+            {editingDocument ? (
+              <Stack spacing={1} sx={{ mt: 2 }}>
+                <TextField
+                  required
+                  label="Title"
+                  value={document.title}
+                  onChange={(event) => setDocument({ ...document, title: event.target.value })}
+                />
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Document type"
+                    value={document.documentType}
+                    onChange={(event) =>
+                      setDocument({ ...document, documentType: event.target.value })
+                    }
+                  >
+                    {[
+                      'LAB_RESULT',
+                      'IMAGING_RESULT',
+                      'MEDICAL_REPORT',
+                      'PRESCRIPTION',
+                      'OTHER',
+                    ].map((type) => (
+                      <MenuItem key={type} value={type}>
+                        {type.replace('_', ' ')}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField
+                    required
+                    fullWidth
+                    label="Document date"
+                    type="date"
+                    InputLabelProps={{ shrink: true }}
+                    value={document.documentDate}
+                    onChange={(event) =>
+                      setDocument({ ...document, documentDate: event.target.value })
+                    }
+                  />
+                  <TextField
+                    select
+                    fullWidth
+                    label="Practitioner"
+                    value={document.practitionerId}
+                    onChange={(event) =>
+                      setDocument({ ...document, practitionerId: event.target.value })
+                    }
+                  >
+                    <MenuItem value="">None</MenuItem>
+                    {practitioners.map((item) => (
+                      <MenuItem key={item.id} value={item.id}>
+                        Dr. {item.firstName} {item.lastName}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Stack>
+                <Stack direction="row" spacing={1}>
+                  <Button variant="contained" onClick={saveDocument}>
+                    Save details
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setEditingDocument(undefined);
+                      setDocument({
+                        title: '',
+                        documentType: 'LAB_RESULT',
+                        documentDate: '',
+                        practitionerId: '',
+                      });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Stack>
+              </Stack>
+            ) : null}
+            <Stack spacing={1} sx={{ mt: 2 }}>
+              {documents.map((item) => (
+                <Stack
+                  key={item.id}
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1}
+                  alignItems={{ sm: 'center' }}
+                >
+                  <Typography sx={{ flexGrow: 1 }}>
+                    {item.title} · {item.documentType.replaceAll('_', ' ')} · {item.status}
+                  </Typography>
+                  <Button
+                    onClick={() => {
+                      setEditingDocument(item.id);
+                      setDocument({
+                        title: item.title,
+                        documentType: item.documentType,
+                        documentDate: item.documentDate,
+                        practitionerId: item.practitioner?.id?.toString() || '',
+                      });
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    onClick={() =>
+                      void call(`/api/admin/documents/${item.id}/reindex`, { method: 'POST' })
+                        .then(() => {
+                          setNotice('Document re-indexed.');
+                          return refresh();
+                        })
+                        .catch((cause) =>
+                          setError(
+                            cause instanceof Error ? cause.message : 'Unable to re-index document.',
+                          ),
+                        )
+                    }
+                  >
+                    Re-index
+                  </Button>
+                  <Button
+                    color="error"
+                    onClick={() => {
+                      if (window.confirm(`Delete ${item.title}? This cannot be undone.`))
+                        void call(`/api/admin/documents/${item.id}`, { method: 'DELETE' })
+                          .then(refresh)
+                          .catch((cause) =>
+                            setError(
+                              cause instanceof Error ? cause.message : 'Unable to delete document.',
+                            ),
+                          );
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </Stack>
+              ))}
+            </Stack>
+          </CardContent>
+        </Card>
+        <Card sx={{ borderRadius: 3 }}>
           <CardContent>
             <Typography variant="h6">Practitioners</Typography>
             <Stack spacing={1} sx={{ mt: 2 }}>
@@ -217,7 +560,7 @@ export function AdminPage() {
             ))}
           </CardContent>
         </Card>
-        <Card>
+        <Card sx={{ borderRadius: 3 }}>
           <CardContent>
             <Typography variant="h6">Appointment slots</Typography>
             <TextField
@@ -300,7 +643,7 @@ export function AdminPage() {
             </Stack>
           </CardContent>
         </Card>
-        <Card>
+        <Card sx={{ borderRadius: 3 }}>
           <CardContent>
             <Typography variant="h6">Upload medical document</Typography>
             <Stack spacing={1} sx={{ mt: 2 }}>
@@ -373,7 +716,7 @@ export function AdminPage() {
             </Stack>
           </CardContent>
         </Card>
-        <Card>
+        <Card sx={{ borderRadius: 3 }}>
           <CardContent>
             <Typography variant="h6">Patients</Typography>
             {patients.map((patient) => (
@@ -385,10 +728,39 @@ export function AdminPage() {
               Appointments
             </Typography>
             {appointments.map((item) => (
-              <Typography key={item.id}>
-                #{item.id} · {item.patient?.firstName} {item.patient?.lastName} · Dr.{' '}
-                {item.practitioner?.lastName} · {item.status}
-              </Typography>
+              <Stack key={item.id} direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                <Typography sx={{ flexGrow: 1 }}>
+                  #{item.id} · {item.patient?.firstName} {item.patient?.lastName} · Dr.{' '}
+                  {item.practitioner?.lastName} · {item.status}
+                </Typography>
+                {item.status === 'CONFIRMED' ? (
+                  <Button onClick={() => void changeAppointmentStatus(item.id, 'CANCELLED')}>
+                    Cancel
+                  </Button>
+                ) : null}
+                {item.status === 'CONFIRMED' ? (
+                  <Button onClick={() => void changeAppointmentStatus(item.id, 'COMPLETED')}>
+                    Complete
+                  </Button>
+                ) : null}
+                <Button
+                  color="error"
+                  onClick={() => {
+                    if (window.confirm(`Delete appointment #${item.id}?`))
+                      void call(`/api/admin/appointments/${item.id}`, { method: 'DELETE' })
+                        .then(refresh)
+                        .catch((cause) =>
+                          setError(
+                            cause instanceof Error
+                              ? cause.message
+                              : 'Unable to delete appointment.',
+                          ),
+                        );
+                  }}
+                >
+                  Delete
+                </Button>
+              </Stack>
             ))}
           </CardContent>
         </Card>

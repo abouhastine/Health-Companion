@@ -62,6 +62,28 @@ public class AdminController {
     return appointments.findAllWithDetails().stream().map(AppointmentResponse::from).toList();
   }
 
+  @PutMapping("/appointments/{id}")
+  public AppointmentResponse updateAppointment(
+      @PathVariable Long id, @Valid @RequestBody AdminAppointmentRequest request) {
+    var appointment =
+        appointments.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    if (appointment.status == AppointmentStatus.COMPLETED && request.status() != AppointmentStatus.COMPLETED)
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Completed appointments cannot be reopened");
+    appointment.status = request.status();
+    if (request.reason() != null) appointment.reason = request.reason();
+    appointment.slot.available = request.status() == AppointmentStatus.CANCELLED;
+    return AppointmentResponse.from(appointments.save(appointment));
+  }
+
+  @DeleteMapping("/appointments/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteAppointment(@PathVariable Long id) {
+    var appointment =
+        appointments.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    appointment.slot.available = true;
+    appointments.delete(appointment);
+  }
+
   @GetMapping("/practitioners")
   public List<Practitioner> practitionerList() {
     return practitioners.findAll();
@@ -182,6 +204,42 @@ public class AdminController {
     return ingest(document);
   }
 
+  @GetMapping("/documents")
+  public List<DocumentResponse> documentList() {
+    return docs.findAll().stream().map(DocumentResponse::from).toList();
+  }
+
+  @PutMapping("/documents/{id}")
+  public DocumentResponse updateDocument(
+      @PathVariable Long id, @Valid @RequestBody DocumentMetadataRequest request) {
+    var document = docs.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    document.title = request.title();
+    document.documentType = request.documentType();
+    document.documentDate = request.documentDate();
+    document.practitioner =
+        request.practitionerId() == null
+            ? null
+            : practitioners
+                .findById(request.practitionerId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    return DocumentResponse.from(docs.save(document));
+  }
+
+  @DeleteMapping("/documents/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteDocument(@PathVariable Long id) throws IOException {
+    var document = docs.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    var storagePath = document.storagePath;
+    try {
+      docs.delete(document);
+      docs.flush();
+      storage.delete(storagePath);
+    } catch (DataIntegrityViolationException exception) {
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, "Document is referenced by a conversation and cannot be deleted", exception);
+    }
+  }
+
   private DocumentResponse ingest(MedicalDocument document) {
     try {
       ingestion.ingest(document);
@@ -220,6 +278,15 @@ public class AdminController {
 
   public record SlotRequest(
       @NotNull LocalDateTime startAt, @NotNull LocalDateTime endAt, Boolean available) {}
+
+  public record AdminAppointmentRequest(
+      @NotNull AppointmentStatus status, @Size(max = 1000) String reason) {}
+
+  public record DocumentMetadataRequest(
+      @NotBlank @Size(max = 255) String title,
+      @NotNull DocumentType documentType,
+      @NotNull @PastOrPresent LocalDate documentDate,
+      Long practitionerId) {}
 
   public record PractitionerRequest(
       @NotBlank @Size(max = 100) String firstName,

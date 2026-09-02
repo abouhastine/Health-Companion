@@ -10,16 +10,19 @@ import org.springframework.web.server.ResponseStatusException;
 public class ConversationService {
   private final AiConversationRepository conversations;
   private final AiMessageRepository messages;
+  private final AiAuditEventRepository auditEvents;
   private final UserRepository users;
   private final MedicalDocumentRepository documents;
 
   public ConversationService(
       AiConversationRepository c,
       AiMessageRepository m,
+      AiAuditEventRepository a,
       UserRepository u,
       MedicalDocumentRepository d) {
     conversations = c;
     messages = m;
+    auditEvents = a;
     users = u;
     documents = d;
   }
@@ -66,5 +69,12 @@ public class ConversationService {
     return all.subList(from, all.size()).stream()
         .map(m -> m.role + ": " + m.content)
         .reduce("", (a, b) -> a + "\n" + b);
+  }
+
+  @org.springframework.transaction.annotation.Transactional
+  public void delete(long patientId, long id) {
+    var conversation = resolve(patientId, id, null);
+    auditEvents.deleteByConversationId(conversation.id);
+    conversations.delete(conversation);
   }
 }

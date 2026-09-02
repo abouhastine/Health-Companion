@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, CardContent, Chip, Stack, Typography } from '@mui/material';
+import { Box, Button, Stack, Typography } from '@mui/material';
+import { AutoAwesomeOutlined, DownloadOutlined, VisibilityOutlined } from '@mui/icons-material';
 import { Link, useParams } from 'react-router-dom';
 import { ErrorMessage } from '../../components/ErrorMessage';
+import { EmptyState, PageHeader, SectionCard, StatusChip } from '../../components/ui';
 import { AppShell } from '../../layouts/AppShell';
 import { call, download, preview } from '../../services/apiClient';
 import type { Document } from '../../types/domain';
@@ -20,33 +22,59 @@ export function DocumentListPage() {
 
   return (
     <AppShell>
-      <Typography variant="h4" gutterBottom>
-        My medical results
-      </Typography>
+      <PageHeader
+        eyebrow="Health record"
+        title="Medical results"
+        description="Your reports are private, organized and ready when you need them."
+      />
       <ErrorMessage message={error} />
       {loading ? <Typography>Loading medical results…</Typography> : null}
       {!loading && items.length === 0 ? (
-        <Typography color="text.secondary">No medical results are available yet.</Typography>
+        <EmptyState
+          kind="document"
+          title="No medical results yet"
+          description="New reports shared by your care team will appear here."
+        />
       ) : null}
       <Stack spacing={2}>
         {items.map((item) => (
-          <Card key={item.id}>
-            <CardContent>
-              <Typography variant="h6">{item.title}</Typography>
-              <Typography>
-                {item.documentType.replace('_', ' ')} · {item.documentDate}
-              </Typography>
-              <Typography color="text.secondary">
-                {item.practitioner
-                  ? `Dr. ${item.practitioner.lastName} · ${item.practitioner.organization}`
-                  : 'Uploaded to your record'}
-              </Typography>
-              <Chip size="small" sx={{ mt: 1 }} label={item.status} />
-              <Button component={Link} to={`/documents/${item.id}`}>
+          <SectionCard
+            key={item.id}
+            action={<StatusChip status={item.status} />}
+            sx={{
+              transition: 'transform .18s ease, box-shadow .18s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 12px 30px rgba(21, 75, 70, .09)',
+              },
+            }}
+          >
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              justifyContent="space-between"
+              spacing={2}
+            >
+              <Box>
+                <Typography variant="h6">{item.title}</Typography>
+                <Typography sx={{ mt: 0.5, textTransform: 'capitalize' }}>
+                  {item.documentType.replace(/_/g, ' ').toLowerCase()} · {item.documentDate}
+                </Typography>
+                <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                  {item.practitioner
+                    ? `Dr. ${item.practitioner.lastName} · ${item.practitioner.organization}`
+                    : 'Uploaded to your record'}
+                </Typography>
+              </Box>
+              <Button
+                component={Link}
+                to={`/documents/${item.id}`}
+                variant="outlined"
+                startIcon={<VisibilityOutlined />}
+              >
                 Open result
               </Button>
-            </CardContent>
-          </Card>
+            </Stack>
+          </SectionCard>
         ))}
       </Stack>
     </AppShell>
@@ -71,24 +99,24 @@ export function DocumentDetailPage() {
       <ErrorMessage message={error} />
       {loading ? <Typography>Loading result…</Typography> : null}
       {item && (
-        <Card>
-          <CardContent>
-            <Typography variant="h4" gutterBottom>
-              {item.title}
-            </Typography>
-            <Typography>
-              {item.documentType.replace('_', ' ')} · {item.documentDate}
-            </Typography>
-            <Chip size="small" sx={{ mt: 1 }} label={item.status} />
+        <>
+          <PageHeader
+            eyebrow="Medical result"
+            title={item.title}
+            description={`${item.documentType.replace(/_/g, ' ').toLowerCase()} · ${item.documentDate}`}
+            action={<StatusChip status={item.status} />}
+          />
+          <SectionCard>
             {item.practitioner && (
-              <Typography>
+              <Typography color="text.secondary">
                 Associated practitioner: Dr. {item.practitioner.firstName}{' '}
                 {item.practitioner.lastName}
               </Typography>
             )}
-            <Stack direction="row" spacing={1} sx={{ mt: 3 }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 3 }}>
               <Button
                 variant="outlined"
+                startIcon={<VisibilityOutlined />}
                 disabled={item.status !== 'AVAILABLE'}
                 onClick={() =>
                   preview(`/api/documents/${id}/download`).catch((error) =>
@@ -102,6 +130,7 @@ export function DocumentDetailPage() {
               </Button>
               <Button
                 variant="outlined"
+                startIcon={<DownloadOutlined />}
                 disabled={item.status !== 'AVAILABLE'}
                 onClick={() =>
                   download(`/api/documents/${id}/download`, `${item.title}.pdf`).catch(() =>
@@ -113,6 +142,7 @@ export function DocumentDetailPage() {
               </Button>
               <Button
                 variant="contained"
+                startIcon={<AutoAwesomeOutlined />}
                 component={Link}
                 to={`/documents/${id}/ask`}
                 disabled={item.status !== 'AVAILABLE'}
@@ -120,8 +150,12 @@ export function DocumentDetailPage() {
                 Ask about this result
               </Button>
             </Stack>
-          </CardContent>
-        </Card>
+            <Typography color="text.secondary" variant="body2" sx={{ mt: 3 }}>
+              The assistant explains information from this result; it does not diagnose or replace
+              your practitioner.
+            </Typography>
+          </SectionCard>
+        </>
       )}
     </AppShell>
   );

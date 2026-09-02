@@ -213,10 +213,79 @@ class DemoFlowIT {
             get("/api/ai/conversations/{id}", conversationId)
                 .header(HttpHeaders.AUTHORIZATION, bearer(otherPatient.token())))
         .andExpect(status().isNotFound());
+    mvc.perform(
+            delete("/api/ai/conversations/{id}", conversationId)
+                .header(HttpHeaders.AUTHORIZATION, bearer(patient.token())))
+        .andExpect(status().isNoContent());
+    mvc.perform(
+            get("/api/ai/conversations/{id}", conversationId)
+                .header(HttpHeaders.AUTHORIZATION, bearer(patient.token())))
+        .andExpect(status().isNotFound());
 
     mvc.perform(
             delete("/api/appointments/{id}", appointmentId)
                 .header(HttpHeaders.AUTHORIZATION, bearer(patient.token())))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void supportsRoleScopedUserCrud() throws Exception {
+    var admin = login("admin@health-companion.demo", "DemoPassword1!");
+    var patient = register("crud-patient@example.test");
+
+    performJson(
+        put("/api/users/me"),
+        patient.token(),
+        Map.of(
+            "firstName", "Updated",
+            "lastName", "Patient",
+            "email", "crud-patient@example.test",
+            "phone", "+33999999999",
+            "password", ""),
+        200);
+
+    var created =
+        performJson(
+            post("/api/admin/users"),
+            admin.token(),
+            Map.of(
+                "firstName", "Temporary",
+                "lastName", "Admin",
+                "email", "temporary-admin@example.test",
+                "phone", "",
+                "password", "DemoPassword1!",
+                "role", "ADMIN"),
+            201);
+    long temporaryAdminId = created.path("id").asLong();
+
+    mvc.perform(
+            get("/api/admin/users").header(HttpHeaders.AUTHORIZATION, bearer(admin.token())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[?(@.email == 'temporary-admin@example.test')]").exists());
+
+    performJson(
+        put("/api/admin/users/" + temporaryAdminId),
+        admin.token(),
+        Map.of(
+            "firstName", "Updated",
+            "lastName", "Administrator",
+            "email", "temporary-admin@example.test",
+            "phone", "+33111111111",
+            "password", "",
+            "role", "ADMIN"),
+        200);
+
+    mvc.perform(
+            delete("/api/admin/users/{id}", temporaryAdminId)
+                .header(HttpHeaders.AUTHORIZATION, bearer(admin.token())))
+        .andExpect(status().isNoContent());
+    mvc.perform(
+            delete("/api/admin/users/{id}", admin.id())
+                .header(HttpHeaders.AUTHORIZATION, bearer(admin.token())))
+        .andExpect(status().isConflict());
+
+    mvc.perform(
+            delete("/api/users/me").header(HttpHeaders.AUTHORIZATION, bearer(patient.token())))
         .andExpect(status().isNoContent());
   }
 

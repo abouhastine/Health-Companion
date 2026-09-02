@@ -120,6 +120,12 @@ public class AiChatController {
     return conversations.history((Long) auth.getPrincipal(), id);
   }
 
+  @DeleteMapping("/conversations/{id}")
+  @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+  public void deleteConversation(Authentication auth, @PathVariable long id) {
+    conversations.delete((Long) auth.getPrincipal(), id);
+  }
+
   public record ChatRequest(
       @NotBlank @Size(max = 4000) String question,
       @Positive Long documentId,
