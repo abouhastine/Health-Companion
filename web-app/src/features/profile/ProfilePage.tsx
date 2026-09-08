@@ -38,7 +38,12 @@ export function ProfilePage() {
     try {
       const updated = await call<UserProfile>('/api/users/me', {
         method: 'PUT',
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          firstName: form.firstName,
+          lastName: form.lastName,
+          phone: form.phone,
+          password: form.password,
+        }),
       });
       setProfile(updated);
       setForm({ ...updated, phone: updated.phone ?? '', password: '' });
@@ -133,11 +138,11 @@ export function ProfilePage() {
               </Stack>
               <TextField
                 fullWidth
-                disabled={!editing}
+                disabled
                 label="Email"
                 type="email"
                 value={form.email}
-                onChange={(event) => setField('email', event.target.value)}
+                helperText="Email is your account identifier and cannot be changed."
               />
               <TextField
                 fullWidth

@@ -66,9 +66,7 @@ public class AdminUserController {
         && request.role() != Role.ADMIN
         && users.countByRole(Role.ADMIN) <= 1)
       throw new ResponseStatusException(HttpStatus.CONFLICT, "At least one administrator is required");
-    var email = normalizedEmail(request.email());
-    ensureEmailAvailable(email, user.id);
-    apply(user, request.firstName(), request.lastName(), email, request.phone(), request.role());
+    apply(user, request.firstName(), request.lastName(), user.email, request.phone(), request.role());
     if (request.password() != null && !request.password().isBlank())
       user.passwordHash = passwords.encode(request.password());
     return UserResponse.from(users.save(user));
@@ -133,7 +131,6 @@ public class AdminUserController {
   public record UpdateUserRequest(
       @NotBlank @Size(max = 100) String firstName,
       @NotBlank @Size(max = 100) String lastName,
-      @NotBlank @Email @Size(max = 255) String email,
       @Size(max = 50) String phone,
       @Pattern(regexp = "^$|.{8,100}$", message = "Password must be at least 8 characters")
           String password,

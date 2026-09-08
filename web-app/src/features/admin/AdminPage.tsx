@@ -136,7 +136,13 @@ export function AdminPage() {
   const saveUser = async () => {
     try {
       if (editingUser) {
-        const payload = { ...user, password: user.password || undefined };
+        const payload = {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phone: user.phone,
+          password: user.password || undefined,
+          role: user.role,
+        };
         await call(`/api/admin/users/${editingUser}`, {
           method: 'PUT',
           body: JSON.stringify(payload),
@@ -258,7 +264,9 @@ export function AdminPage() {
                 label="Email"
                 type="email"
                 value={user.email}
+                disabled={Boolean(editingUser)}
                 onChange={(event) => setUser({ ...user, email: event.target.value })}
+                helperText={editingUser ? 'Email is the account identifier and cannot be changed.' : undefined}
               />
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                 <TextField

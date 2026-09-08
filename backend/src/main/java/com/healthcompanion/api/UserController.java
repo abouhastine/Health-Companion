@@ -30,17 +30,8 @@ public class UserController {
   @PutMapping("/me")
   public UserResponse update(Authentication authentication, @Valid @RequestBody ProfileRequest request) {
     var user = current(authentication);
-    var email = request.email().toLowerCase();
-    users
-        .findByEmailIgnoreCase(email)
-        .filter(existing -> !existing.id.equals(user.id))
-        .ifPresent(
-            ignored -> {
-              throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
-            });
     user.firstName = request.firstName();
     user.lastName = request.lastName();
-    user.email = email;
     user.phone = request.phone();
     if (request.password() != null && !request.password().isBlank())
       user.passwordHash = passwords.encode(request.password());
@@ -74,7 +65,6 @@ public class UserController {
   public record ProfileRequest(
       @NotBlank @Size(max = 100) String firstName,
       @NotBlank @Size(max = 100) String lastName,
-      @NotBlank @Email @Size(max = 255) String email,
       @Size(max = 50) String phone,
       @Pattern(regexp = "^$|.{8,100}$", message = "Password must be at least 8 characters")
           String password) {}

@@ -233,16 +233,19 @@ class DemoFlowIT {
     var admin = login("admin@health-companion.demo", "DemoPassword1!");
     var patient = register("crud-patient@example.test");
 
-    performJson(
+    var updatedPatient =
+        performJson(
         put("/api/users/me"),
         patient.token(),
         Map.of(
             "firstName", "Updated",
             "lastName", "Patient",
-            "email", "crud-patient@example.test",
+            "email", "attempted-change@example.test",
             "phone", "+33999999999",
             "password", ""),
         200);
+    org.junit.jupiter.api.Assertions.assertEquals(
+        "crud-patient@example.test", updatedPatient.path("email").asText());
 
     var created =
         performJson(
@@ -263,17 +266,20 @@ class DemoFlowIT {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[?(@.email == 'temporary-admin@example.test')]").exists());
 
-    performJson(
+    var updatedAdmin =
+        performJson(
         put("/api/admin/users/" + temporaryAdminId),
         admin.token(),
         Map.of(
             "firstName", "Updated",
             "lastName", "Administrator",
-            "email", "temporary-admin@example.test",
+            "email", "attempted-admin-change@example.test",
             "phone", "+33111111111",
             "password", "",
             "role", "ADMIN"),
         200);
+    org.junit.jupiter.api.Assertions.assertEquals(
+        "temporary-admin@example.test", updatedAdmin.path("email").asText());
 
     mvc.perform(
             delete("/api/admin/users/{id}", temporaryAdminId)
