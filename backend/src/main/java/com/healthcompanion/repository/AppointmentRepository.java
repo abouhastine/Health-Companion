@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+  boolean existsByPatientId(Long patientId);
+
   @EntityGraph(attributePaths = {"patient", "practitioner", "slot"})
   List<Appointment> findByPatientIdOrderBySlotStartAtDesc(Long patientId);
 

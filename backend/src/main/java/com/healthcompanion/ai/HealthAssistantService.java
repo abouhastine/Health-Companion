@@ -9,6 +9,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class HealthAssistantService {
+  private static final String DOCUMENT_INSTRUCTION =
+      "Use only retrieved facts. Explain in plain language. Never diagnose, prescribe, recommend "
+          + "treatment, or change medication. Do not infer or name a condition from a result. "
+          + "Report only the printed value and reference range; do not say the patient has, likely "
+          + "has, or is confirmed to have any condition.";
   private static final String LIMITATION =
       "This information does not establish a diagnosis or treatment plan. A healthcare professional can interpret it with your symptoms, history, and other results.";
   private final AiQueryRouter router;
@@ -49,7 +54,7 @@ public class HealthAssistantService {
     var result = documents.retrieve(request.patientId(), request.documentId(), request.question());
     var answer =
         llm.generate(
-            "Use only retrieved facts. Explain in plain language. Never diagnose, prescribe, recommend treatment, or change medication.",
+            DOCUMENT_INSTRUCTION,
             withHistory(result.context(), request),
             request.question());
     return safeResponse(
@@ -68,20 +73,14 @@ public class HealthAssistantService {
       AiQueryContext request, java.util.function.Consumer<String> onToken) {
     var result = documents.retrieve(request.patientId(), request.documentId(), request.question());
     var heading = "From Your Result\n";
-    onToken.accept(heading);
-    var answer = new StringBuilder(heading);
-    var unsafe = new boolean[] {false};
+    var generated = new StringBuilder();
     llm.generateStream(
-        "Use only retrieved facts. Explain in plain language. Never diagnose, prescribe, recommend treatment, or change medication.",
+        DOCUMENT_INSTRUCTION,
         withHistory(result.context(), request),
         request.question(),
-        token -> {
-          answer.append(token);
-          if (safety.unsafeAnswer(answer.toString())) unsafe[0] = true;
-          else if (!unsafe[0]) onToken.accept(token);
-        });
-    if (unsafe[0]) {
-      onToken.accept("\n" + AiSafetyService.SAFETY_RESPONSE);
+        generated::append);
+    if (safety.unsafeAnswer(generated.toString())) {
+      onToken.accept(AiSafetyService.SAFETY_RESPONSE);
       return new AiResponse(
           AiQueryMode.DOCUMENT_CONTEXT,
           AiSafetyService.SAFETY_RESPONSE,
@@ -94,6 +93,8 @@ public class HealthAssistantService {
           false,
           true);
     }
+    var answer = new StringBuilder(heading).append(generated);
+    onToken.accept(answer.toString());
     var limitation = "\n\nWhat the AI Cannot Determine\n" + LIMITATION;
     answer.append(limitation);
     onToken.accept(limitation);

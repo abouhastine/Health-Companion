@@ -42,7 +42,6 @@ public class AiSafetyService {
   public boolean unsafeAnswer(String answer) {
     var value = answer == null ? "" : answer.toLowerCase(Locale.ROOT);
     return List.of(
-            "you have ",
             "you likely have",
             "this confirms",
             "this means you have",
@@ -53,7 +52,6 @@ public class AiSafetyService {
             "i recommend taking",
             "increase your dose",
             "decrease your dose",
-            "vous avez ",
             "vous devriez prendre",
             "arrêtez de prendre",
             "commencez à prendre")

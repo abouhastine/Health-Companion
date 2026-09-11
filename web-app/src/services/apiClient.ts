@@ -8,10 +8,28 @@ async function errorMessage(response: Response) {
   if (!text) return `Request failed (${response.status})`;
   try {
     const body = JSON.parse(text) as { detail?: string; message?: string; title?: string };
-    return body.detail ?? body.message ?? body.title ?? text;
+    const message = body.detail ?? body.message ?? body.title ?? text;
+    return message === 'Invalid request content.'
+      ? 'Please check the required fields and try again.'
+      : message;
   } catch {
-    return text;
+    return text === 'Invalid request content.'
+      ? 'Please check the required fields and try again.'
+      : text;
   }
+}
+
+function downloadFilename(contentDisposition: string | null, fallback: string) {
+  const encoded = contentDisposition?.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  const plain = contentDisposition?.match(/filename="?([^";]+)"?/i)?.[1];
+  let filename = fallback;
+  try {
+    filename = encoded ? decodeURIComponent(encoded) : (plain ?? fallback);
+  } catch {
+    filename = plain ?? fallback;
+  }
+  filename = filename.replace(/[\\/:*?"<>|]/g, '_').trim() || 'medical-result';
+  return filename.toLowerCase().endsWith('.pdf') ? filename : `${filename}.pdf`;
 }
 
 function authenticatedHeaders(headers?: HeadersInit): HeadersInit {
@@ -41,7 +59,7 @@ export async function download(path: string, filename: string) {
   const url = URL.createObjectURL(await response.blob());
   const link = document.createElement('a');
   link.href = url;
-  link.download = filename;
+  link.download = downloadFilename(response.headers.get('Content-Disposition'), filename);
   link.click();
   URL.revokeObjectURL(url);
 }

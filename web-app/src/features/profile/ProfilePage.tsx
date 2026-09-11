@@ -1,5 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Avatar, Box, Button, Chip, Stack, TextField, Typography } from '@mui/material';
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { ErrorMessage } from '../../components/ErrorMessage';
 import { PageHeader, SectionCard } from '../../components/ui';
 import { AppShell } from '../../layouts/AppShell';
@@ -23,6 +36,8 @@ export function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     call<UserProfile>('/api/users/me')
@@ -55,14 +70,15 @@ export function ProfilePage() {
   };
 
   const deleteAccount = async () => {
-    if (!window.confirm('Delete your account? This cannot be undone.')) return;
     setError('');
+    setDeletingAccount(true);
     try {
       await call('/api/users/me', { method: 'DELETE' });
       clearSession();
       window.location.assign('/login');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Unable to delete your account.');
+      setDeletingAccount(false);
     }
   };
 
@@ -76,7 +92,11 @@ export function ProfilePage() {
         title="My profile"
         description="Manage your personal details and account access."
       />
-      <ErrorMessage message={error} />
+      {error ? (
+        <Box sx={{ mb: 2 }}>
+          <ErrorMessage message={error} />
+        </Box>
+      ) : null}
       {notice ? (
         <Typography color="success.main" sx={{ mb: 2 }}>
           {notice}
@@ -187,16 +207,41 @@ export function ProfilePage() {
           {profile.role === 'PATIENT' ? (
             <SectionCard title="Delete account" sx={{ borderColor: 'error.light' }}>
               <Typography color="text.secondary" sx={{ mb: 2 }}>
-                Deletion is available only when no appointments or medical records still reference
-                this account.
+                Deletion is available only when no appointments, medical records, or chat history
+                still reference this account.
               </Typography>
-              <Button color="error" variant="outlined" onClick={() => void deleteAccount()}>
+              <Button color="error" variant="outlined" onClick={() => setDeleteDialogOpen(true)}>
                 Delete account
               </Button>
             </SectionCard>
           ) : null}
         </Stack>
       ) : null}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => !deletingAccount && setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Delete your account?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This action cannot be undone. Your account can only be deleted when no appointments,
+            medical records, or chat history still reference it.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setDeleteDialogOpen(false)} disabled={deletingAccount}>
+            Cancel
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => void deleteAccount()}
+            disabled={deletingAccount}
+          >
+            {deletingAccount ? 'Deleting…' : 'Delete account'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AppShell>
   );
 }

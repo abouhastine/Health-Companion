@@ -4,6 +4,7 @@ import com.healthcompanion.documents.LocalDocumentStorage;
 import com.healthcompanion.domain.*;
 import com.healthcompanion.repository.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.*;
 import java.util.*;
 import org.springframework.http.*;
@@ -42,11 +43,19 @@ public class DocumentController {
       throw new ResponseStatusException(
           HttpStatus.CONFLICT, "The document is not available for download");
     var r = storage.load(d.storagePath);
-    var safeTitle = d.title.replaceAll("[\\r\\n\\\"]", "_");
+    var filename = pdfFilename(d.title);
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_PDF)
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + safeTitle + ".pdf\"")
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION,
+            ContentDisposition.attachment().filename(filename, StandardCharsets.UTF_8).build().toString())
         .body(r.bytes());
+  }
+
+  private String pdfFilename(String title) {
+    var safeTitle = title.replaceAll("[\\\\/:*?\\\"<>|\\r\\n]+", "_").trim();
+    if (safeTitle.isBlank()) safeTitle = "medical-result";
+    return safeTitle.toLowerCase(Locale.ROOT).endsWith(".pdf") ? safeTitle : safeTitle + ".pdf";
   }
 
   private MedicalDocument owned(Authentication a, Long id) {

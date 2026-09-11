@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { AdminPage } from '../features/admin/AdminPage';
+import { AdminOverviewPage, AdminPage } from '../features/admin/AdminPage';
 import { AppointmentsPage } from '../features/appointments/AppointmentsPage';
 import { AssistantPage, DocumentAssistantPage } from '../features/assistant/AssistantPages';
 import { LoginPage, RegisterPage } from '../features/auth/AuthPages';
@@ -93,7 +93,55 @@ export function AppRoutes() {
         path="/admin"
         element={
           <AdminRoute>
-            <AdminPage />
+            <AdminOverviewPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <AdminRoute>
+            <AdminPage section="users" />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/documents"
+        element={
+          <AdminRoute>
+            <AdminPage section="documents" />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/practitioners"
+        element={
+          <AdminRoute>
+            <AdminPage section="practitioners" />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/availability"
+        element={
+          <AdminRoute>
+            <AdminPage section="availability" />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/appointments"
+        element={
+          <AdminRoute>
+            <AdminPage section="appointments" />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/profile"
+        element={
+          <AdminRoute>
+            <ProfilePage />
           </AdminRoute>
         }
       />

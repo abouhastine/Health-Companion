@@ -33,6 +33,7 @@ public class DocumentIngestionService {
   @Transactional
   public void ingest(MedicalDocument document) throws IOException {
     chunks.deleteByDocumentId(document.id);
+    chunks.flush();
     try (var pdf = Loader.loadPDF(storage.load(document.storagePath).bytes())) {
       var stripper = new PDFTextStripper();
       var chunkIndex = 0;

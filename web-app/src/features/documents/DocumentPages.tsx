@@ -70,6 +70,7 @@ export function DocumentListPage() {
                 to={`/documents/${item.id}`}
                 variant="outlined"
                 startIcon={<VisibilityOutlined />}
+                sx={{ alignSelf: { xs: 'flex-start', sm: 'center' }, flexShrink: 0 }}
               >
                 Open result
               </Button>

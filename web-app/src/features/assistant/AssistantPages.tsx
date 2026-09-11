@@ -1,5 +1,19 @@
 import { useState } from 'react';
-import { Alert, Box, Button, Chip, Paper, Stack, TextField, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { AutoAwesomeOutlined, SendRounded, VerifiedUserOutlined } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
 import { ErrorMessage } from '../../components/ErrorMessage';
@@ -27,6 +41,8 @@ export function AssistantPage({ documentId }: AssistantPageProps) {
   const [error, setError] = useState('');
   const [asking, setAsking] = useState(false);
   const [notice, setNotice] = useState('');
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
+  const [clearingConversation, setClearingConversation] = useState(false);
 
   const ask = async () => {
     if (!question.trim()) return;
@@ -84,15 +100,18 @@ export function AssistantPage({ documentId }: AssistantPageProps) {
   };
 
   const clearConversation = async () => {
-    if (!conversationId || !window.confirm('Clear this conversation? This cannot be undone.'))
-      return;
+    if (!conversationId) return;
+    setClearingConversation(true);
     try {
       await call(`/api/ai/conversations/${conversationId}`, { method: 'DELETE' });
       setConversationId(undefined);
       setMessages([]);
       setNotice('Conversation cleared.');
+      setClearDialogOpen(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Unable to clear this conversation.');
+    } finally {
+      setClearingConversation(false);
     }
   };
 
@@ -189,7 +208,7 @@ export function AssistantPage({ documentId }: AssistantPageProps) {
             </Typography>
             <Stack direction="row" spacing={1}>
               {conversationId ? (
-                <Button color="inherit" disabled={asking} onClick={() => void clearConversation()}>
+                <Button color="inherit" disabled={asking} onClick={() => setClearDialogOpen(true)}>
                   Clear chat
                 </Button>
               ) : null}
@@ -200,6 +219,30 @@ export function AssistantPage({ documentId }: AssistantPageProps) {
           </Stack>
         </Stack>
       </SectionCard>
+      <Dialog
+        open={clearDialogOpen}
+        onClose={() => !clearingConversation && setClearDialogOpen(false)}
+      >
+        <DialogTitle>Clear this conversation?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This permanently deletes the messages in this chat and cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setClearDialogOpen(false)} disabled={clearingConversation}>
+            Cancel
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => void clearConversation()}
+            disabled={clearingConversation}
+          >
+            {clearingConversation ? 'Clearing…' : 'Clear chat'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AppShell>
   );
 }

@@ -8,10 +8,12 @@ import {
   FavoriteBorder,
   Logout,
   Menu,
+  MedicalServicesOutlined,
   PersonOutline,
   PsychologyOutlined,
   SearchOutlined,
-  SettingsOutlined,
+  ScheduleOutlined,
+  GroupOutlined,
 } from '@mui/icons-material';
 import {
   Avatar,
@@ -66,8 +68,12 @@ function Sidebar({ close }: { close?: () => void }) {
   const navigation: NavItem[] =
     currentRole === 'ADMIN'
       ? [
-          { label: 'Back office', to: '/admin', icon: <SettingsOutlined /> },
-          { label: 'Profile', to: '/profile', icon: <PersonOutline /> },
+          { label: 'Overview', to: '/admin', icon: <DashboardOutlined /> },
+          { label: 'User accounts', to: '/admin/users', icon: <GroupOutlined /> },
+          { label: 'Documents', to: '/admin/documents', icon: <DescriptionOutlined /> },
+          { label: 'Practitioners', to: '/admin/practitioners', icon: <MedicalServicesOutlined /> },
+          { label: 'Availability', to: '/admin/availability', icon: <ScheduleOutlined /> },
+          { label: 'Appointments', to: '/admin/appointments', icon: <CalendarMonthOutlined /> },
         ]
       : [
           { label: 'Overview', to: '/home', icon: <DashboardOutlined /> },
@@ -93,8 +99,12 @@ function Sidebar({ close }: { close?: () => void }) {
           <ListItemButton
             component={NavLink}
             to={item.to}
+            end={item.to === '/admin'}
             key={item.to}
-            selected={location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)}
+            selected={
+              location.pathname === item.to ||
+              (item.to !== '/admin' && location.pathname.startsWith(`${item.to}/`))
+            }
             onClick={close}
             sx={{
               mb: 0.5,
@@ -112,17 +122,20 @@ function Sidebar({ close }: { close?: () => void }) {
       <Box sx={{ flexGrow: 1 }} />
       <Divider sx={{ my: 2 }} />
       <List disablePadding>
-        {currentRole === 'PATIENT' ? (
+        {currentRole ? (
           <ListItemButton
             component={NavLink}
-            to="/profile"
+            to={currentRole === 'ADMIN' ? '/admin/profile' : '/profile'}
             onClick={close}
             sx={{ borderRadius: 2.5 }}
           >
             <ListItemIcon sx={{ minWidth: 39 }}>
               <PersonOutline />
             </ListItemIcon>
-            <ListItemText primary="Profile" primaryTypographyProps={{ fontWeight: 700 }} />
+            <ListItemText
+              primary={currentRole === 'ADMIN' ? 'My admin profile' : 'Profile'}
+              primaryTypographyProps={{ fontWeight: 700 }}
+            />
           </ListItemButton>
         ) : null}
         <ListItemButton

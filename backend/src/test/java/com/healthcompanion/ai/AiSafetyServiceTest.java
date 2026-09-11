@@ -33,4 +33,9 @@ class AiSafetyServiceTest {
         safety.unsafeAnswer(
             "The report shows ferritin below its printed range; this does not establish a diagnosis."));
   }
+
+  @Test
+  void allowsFactualResultValues() {
+    assertFalse(safety.unsafeAnswer("You have a ferritin value of 18 ng/mL in this report."));
+  }
 }

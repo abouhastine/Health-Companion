@@ -97,6 +97,24 @@ SPRING_PROFILES_ACTIVE=demo,local-ai ./mvnw spring-boot:run
 
 `local-ai` selects Ollama for both chat and embeddings. The document-chat endpoint streams tokens over SSE and the configured keep-alive keeps the chat model warm.
 
+#### Check or release local model memory
+
+After testing the chatbot, inspect the models currently loaded by Ollama:
+
+```bash
+ollama ps
+```
+
+On Apple Silicon, the displayed GPU memory comes from the Mac's unified memory. To unload the models and release that memory without deleting the downloaded model files:
+
+```bash
+ollama stop qwen3:4b
+ollama stop qwen3-embedding:0.6b
+ollama ps
+```
+
+The backend loads the models again automatically on the next chat or document-indexing request. To permanently remove a downloaded model instead, use `ollama rm <model-name>`.
+
 ### OpenAI (reference/fallback mode)
 
 #### Create an OpenAI API key
