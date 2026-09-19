@@ -1,4 +1,3 @@
-import type { Chat } from '../types/domain';
 import { token } from './session';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
@@ -75,52 +74,4 @@ export async function preview(path: string) {
   const url = URL.createObjectURL(await response.blob());
   view.location.href = url;
   view.addEventListener('beforeunload', () => URL.revokeObjectURL(url), { once: true });
-}
-
-function parseEvent(rawEvent: string) {
-  const lines = rawEvent.split('\n');
-  const name = lines
-    .find((line) => line.startsWith('event:'))
-    ?.slice(6)
-    .trim();
-  const data = lines
-    .filter((line) => line.startsWith('data:'))
-    .map((line) => line.slice(5).trimStart())
-    .join('\n');
-  return { name, data };
-}
-
-export async function streamChat(
-  path: string,
-  body: unknown,
-  onToken: (chunk: string) => void,
-): Promise<Chat> {
-  const response = await fetch(`${API_URL}${path}`, {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: authenticatedHeaders({
-      'Content-Type': 'application/json',
-      Accept: 'text/event-stream',
-    }),
-  });
-  if (!response.ok || !response.body) throw new Error(await errorMessage(response));
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
-  let completed: Chat | undefined;
-  while (true) {
-    const next = await reader.read();
-    buffer += decoder.decode(next.value, { stream: !next.done }).replaceAll('\r\n', '\n');
-    const events = buffer.split('\n\n');
-    buffer = events.pop() ?? '';
-    for (const rawEvent of events) {
-      const event = parseEvent(rawEvent);
-      if (event.name === 'token') onToken(event.data);
-      if (event.name === 'complete') completed = JSON.parse(event.data) as Chat;
-    }
-    if (next.done) break;
-  }
-  if (!completed) throw new Error('The assistant stream ended unexpectedly.');
-  return completed;
 }

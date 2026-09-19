@@ -18,9 +18,6 @@ public class AiAuditEvent {
   @JoinColumn(name = "conversation_id")
   public AiConversation conversation;
 
-  @Enumerated(EnumType.STRING)
-  public AiQueryMode mode;
-
   public String provider;
 
   @Column(name = "safety_blocked")

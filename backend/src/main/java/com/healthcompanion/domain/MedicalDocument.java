@@ -36,6 +36,4 @@ public class MedicalDocument {
   @Column(name = "created_at")
   public Instant createdAt = Instant.now();
 
-  @Enumerated(EnumType.STRING)
-  public DocumentStatus status = DocumentStatus.PROCESSING;
 }

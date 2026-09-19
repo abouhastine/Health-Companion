@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, Stack, Typography } from '@mui/material';
-import { AutoAwesomeOutlined, DownloadOutlined, VisibilityOutlined } from '@mui/icons-material';
+import { DownloadOutlined, VisibilityOutlined } from '@mui/icons-material';
 import { Link, useParams } from 'react-router-dom';
 import { ErrorMessage } from '../../components/ErrorMessage';
-import { EmptyState, PageHeader, SectionCard, StatusChip } from '../../components/ui';
+import { EmptyState, PageHeader, SectionCard } from '../../components/ui';
 import { AppShell } from '../../layouts/AppShell';
 import { call, download, preview } from '../../services/apiClient';
 import type { Document } from '../../types/domain';
@@ -40,7 +40,6 @@ export function DocumentListPage() {
         {items.map((item) => (
           <SectionCard
             key={item.id}
-            action={<StatusChip status={item.status} />}
             sx={{
               transition: 'transform .18s ease, box-shadow .18s ease',
               '&:hover': {
@@ -105,7 +104,6 @@ export function DocumentDetailPage() {
             eyebrow="Medical result"
             title={item.title}
             description={`${item.documentType.replace(/_/g, ' ').toLowerCase()} · ${item.documentDate}`}
-            action={<StatusChip status={item.status} />}
           />
           <SectionCard>
             {item.practitioner && (
@@ -118,7 +116,6 @@ export function DocumentDetailPage() {
               <Button
                 variant="outlined"
                 startIcon={<VisibilityOutlined />}
-                disabled={item.status !== 'AVAILABLE'}
                 onClick={() =>
                   preview(`/api/documents/${id}/download`).catch((error) =>
                     setError(
@@ -132,7 +129,6 @@ export function DocumentDetailPage() {
               <Button
                 variant="outlined"
                 startIcon={<DownloadOutlined />}
-                disabled={item.status !== 'AVAILABLE'}
                 onClick={() =>
                   download(`/api/documents/${id}/download`, `${item.title}.pdf`).catch(() =>
                     setError('Unable to download the document.'),
@@ -141,20 +137,7 @@ export function DocumentDetailPage() {
               >
                 Download PDF
               </Button>
-              <Button
-                variant="contained"
-                startIcon={<AutoAwesomeOutlined />}
-                component={Link}
-                to={`/documents/${id}/ask`}
-                disabled={item.status !== 'AVAILABLE'}
-              >
-                Ask about this result
-              </Button>
             </Stack>
-            <Typography color="text.secondary" variant="body2" sx={{ mt: 3 }}>
-              The assistant explains information from this result; it does not diagnose or replace
-              your practitioner.
-            </Typography>
           </SectionCard>
         </>
       )}

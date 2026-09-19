@@ -1,6 +1,5 @@
 package com.healthcompanion.config;
 
-import com.healthcompanion.ai.MedicalKnowledgeIngestionService;
 import com.healthcompanion.domain.*;
 import com.healthcompanion.repository.*;
 import java.time.*;
@@ -16,9 +15,7 @@ public class DemoSeedData {
       PractitionerRepository practitioners,
       AppointmentSlotRepository slots,
       UserRepository users,
-      PasswordEncoder passwords,
-      KnowledgeChunkRepository knowledge,
-      MedicalKnowledgeIngestionService ingestion) {
+      PasswordEncoder passwords) {
     return args -> {
       if (users.findByEmailIgnoreCase("admin@health-companion.demo").isEmpty()) {
         var u = new User();
@@ -51,13 +48,6 @@ public class DemoSeedData {
         seedSlots(slots, general, 10);
         seedSlots(slots, cardiologist, 14);
       }
-      if (knowledge.count() == 0)
-        ingestion.ingest(
-            "Health Companion demo knowledge",
-            "Ferritin",
-            "en",
-            "1",
-            "Ferritin is a protein that stores iron. Interpret a result together with the laboratory reference range and a healthcare professional; this does not establish a diagnosis.");
     };
   }
 

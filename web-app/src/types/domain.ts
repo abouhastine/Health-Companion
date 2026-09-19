@@ -17,16 +17,12 @@ export type Document = {
   documentType: string;
   documentDate: string;
   practitioner?: Practitioner;
-  status: 'PROCESSING' | 'AVAILABLE' | 'FAILED';
 };
 
 export type Chat = {
   conversationId: number;
   response: {
-    mode: string;
     answer: string;
-    sources: { title: string; page?: number; scope: string }[];
-    generalKnowledgeNotice: boolean;
     safetyBlocked: boolean;
   };
 };

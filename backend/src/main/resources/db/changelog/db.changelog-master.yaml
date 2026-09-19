@@ -9,3 +9,5 @@ databaseChangeLog:
       file: db/changelog/004-mvp-completion.yaml
   - include:
       file: db/changelog/005-provider-aware-embedding-dimensions.yaml
+  - include:
+      file: db/changelog/006-remove-rag.yaml

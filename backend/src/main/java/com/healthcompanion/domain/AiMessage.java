@@ -19,9 +19,6 @@ public class AiMessage {
   @Column(columnDefinition = "TEXT")
   public String content;
 
-  @Enumerated(EnumType.STRING)
-  public AiQueryMode mode;
-
   @Column(name = "created_at")
   public Instant createdAt = Instant.now();
 }

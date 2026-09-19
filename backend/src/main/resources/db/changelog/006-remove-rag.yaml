@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: remove-rag
+      author: codex
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              ALTER TABLE ai_conversations DROP COLUMN document_id;
+              ALTER TABLE ai_messages DROP COLUMN mode;
+              ALTER TABLE ai_audit_events DROP COLUMN mode;
+              ALTER TABLE medical_documents DROP COLUMN status;
+              DROP TABLE document_chunks;
+              DROP TABLE knowledge_chunks;
+              DROP EXTENSION vector;

@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AdminOverviewPage, AdminPage } from '../features/admin/AdminPage';
 import { AppointmentsPage } from '../features/appointments/AppointmentsPage';
-import { AssistantPage, DocumentAssistantPage } from '../features/assistant/AssistantPages';
+import { AssistantPage } from '../features/assistant/AssistantPages';
 import { LoginPage, RegisterPage } from '../features/auth/AuthPages';
 import { DocumentDetailPage, DocumentListPage } from '../features/documents/DocumentPages';
 import { PatientHomePage } from '../features/home/PatientHomePage';
@@ -70,14 +70,6 @@ export function AppRoutes() {
         element={
           <PatientRoute>
             <DocumentDetailPage />
-          </PatientRoute>
-        }
-      />
-      <Route
-        path="/documents/:id/ask"
-        element={
-          <PatientRoute>
-            <DocumentAssistantPage />
           </PatientRoute>
         }
       />

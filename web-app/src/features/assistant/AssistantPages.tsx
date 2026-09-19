@@ -15,16 +15,11 @@ import {
   Typography,
 } from '@mui/material';
 import { AutoAwesomeOutlined, SendRounded, VerifiedUserOutlined } from '@mui/icons-material';
-import { useParams } from 'react-router-dom';
 import { ErrorMessage } from '../../components/ErrorMessage';
 import { PageHeader, SectionCard } from '../../components/ui';
 import { AppShell } from '../../layouts/AppShell';
-import { call, streamChat } from '../../services/apiClient';
+import { call } from '../../services/apiClient';
 import type { Chat } from '../../types/domain';
-
-type AssistantPageProps = {
-  documentId?: number;
-};
 
 type Message = {
   role: string;
@@ -32,10 +27,8 @@ type Message = {
   response?: Chat['response'];
 };
 
-export function AssistantPage({ documentId }: AssistantPageProps) {
-  const [question, setQuestion] = useState(
-    documentId ? 'Explain this result in simple terms.' : 'What is my next appointment?',
-  );
+export function AssistantPage() {
+  const [question, setQuestion] = useState('What is a healthy way to prepare for a doctor visit?');
   const [conversationId, setConversationId] = useState<number>();
   const [messages, setMessages] = useState<Message[]>([]);
   const [error, setError] = useState('');
@@ -50,47 +43,16 @@ export function AssistantPage({ documentId }: AssistantPageProps) {
     setAsking(true);
     setError('');
     try {
-      if (documentId) {
-        setMessages((previous) => [
-          ...previous,
-          { role: 'You', text: asked },
-          { role: 'Health Companion', text: '' },
-        ]);
-        const result = await streamChat(
-          `/api/ai/documents/${documentId}/chat/stream`,
-          { question: asked, conversationId },
-          (chunk) =>
-            setMessages((previous) => {
-              const copy = [...previous];
-              copy[copy.length - 1] = {
-                ...copy[copy.length - 1],
-                text: copy[copy.length - 1].text + chunk,
-              };
-              return copy;
-            }),
-        );
-        setConversationId(result.conversationId);
-        setMessages((previous) => {
-          const copy = [...previous];
-          copy[copy.length - 1] = {
-            ...copy[copy.length - 1],
-            text: result.response.answer,
-            response: result.response,
-          };
-          return copy;
-        });
-      } else {
-        const result = await call<Chat>('/api/ai/chat', {
-          method: 'POST',
-          body: JSON.stringify({ question: asked, documentId, conversationId }),
-        });
-        setConversationId(result.conversationId);
-        setMessages((previous) => [
-          ...previous,
-          { role: 'You', text: asked },
-          { role: 'Health Companion', text: result.response.answer, response: result.response },
-        ]);
-      }
+      const result = await call<Chat>('/api/ai/chat', {
+        method: 'POST',
+        body: JSON.stringify({ question: asked, conversationId }),
+      });
+      setConversationId(result.conversationId);
+      setMessages((previous) => [
+        ...previous,
+        { role: 'You', text: asked },
+        { role: 'Health Companion', text: result.response.answer, response: result.response },
+      ]);
       setQuestion('');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unable to reach the assistant.');
@@ -118,13 +80,9 @@ export function AssistantPage({ documentId }: AssistantPageProps) {
   return (
     <AppShell>
       <PageHeader
-        eyebrow={documentId ? 'Selected medical result' : 'Health information'}
-        title={documentId ? 'Ask about this result' : 'Health assistant'}
-        description={
-          documentId
-            ? 'Get a clear explanation grounded in the pages of this result.'
-            : 'Ask about appointments, your health record or general medical terminology.'
-        }
+        eyebrow="Health information"
+        title="Health assistant"
+        description="Ask general health questions and get educational information."
         action={
           <Chip
             icon={<VerifiedUserOutlined />}
@@ -148,9 +106,7 @@ export function AssistantPage({ documentId }: AssistantPageProps) {
                 How can I help?
               </Typography>
               <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-                {documentId
-                  ? 'Try “Explain this result in simple terms.”'
-                  : 'Try “What is my next appointment?” or “What does ferritin mean?”'}
+                Try “What does ferritin mean?” or “How can I prepare for a doctor visit?”
               </Typography>
             </Box>
           ) : null}
@@ -175,18 +131,6 @@ export function AssistantPage({ documentId }: AssistantPageProps) {
                   boundary.
                 </Alert>
               ) : null}
-              {message.response?.generalKnowledgeNotice && (
-                <Typography color="text.secondary" sx={{ mt: 1 }}>
-                  This is general education and is not based on your medical record.
-                </Typography>
-              )}
-              {message.response?.sources.map((source, sourceIndex) => (
-                <Typography key={sourceIndex} variant="caption" display="block">
-                  Source: {source.title}
-                  {source.page ? ` · p. ${source.page}` : ''}
-                  {source.scope === 'MEDICAL_KNOWLEDGE' ? ' · approved knowledge' : ''}
-                </Typography>
-              ))}
             </Paper>
           ))}
           <TextField
@@ -245,9 +189,4 @@ export function AssistantPage({ documentId }: AssistantPageProps) {
       </Dialog>
     </AppShell>
   );
-}
-
-export function DocumentAssistantPage() {
-  const { id } = useParams();
-  return <AssistantPage documentId={Number(id)} />;
 }

@@ -65,7 +65,7 @@ const adminPageCopy: Record<AdminSection, { title: string; description: string }
   },
   documents: {
     title: 'Document management',
-    description: 'Upload, update, re-index, and manage patient medical documents.',
+    description: 'Upload, update, and manage patient medical documents.',
   },
   practitioners: {
     title: 'Practitioner management',
@@ -220,7 +220,7 @@ export function AdminPage({ section }: { section: AdminSection }) {
       });
       form.append('file', upload.file);
       await call('/api/admin/documents', { method: 'POST', body: form });
-      setNotice('Medical document uploaded and queued for retrieval.');
+      setNotice('Medical document uploaded.');
       setUpload({
         patientId: '',
         practitionerId: '',
@@ -433,8 +433,7 @@ export function AdminPage({ section }: { section: AdminSection }) {
             <CardContent>
               <Typography variant="h6">Document library</Typography>
               <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>
-                Edit metadata, re-index a result after a provider change, or remove an unreferenced
-                document.
+                Edit metadata or remove an unreferenced document.
               </Typography>
               {editingDocument ? (
                 <Stack spacing={1} sx={{ mt: 2 }}>
@@ -523,7 +522,7 @@ export function AdminPage({ section }: { section: AdminSection }) {
                     alignItems={{ sm: 'center' }}
                   >
                     <Typography sx={{ flexGrow: 1 }}>
-                      {item.title} · {item.documentType.replaceAll('_', ' ')} · {item.status}
+                      {item.title} · {item.documentType.replaceAll('_', ' ')}
                     </Typography>
                     <Button
                       onClick={() => {
@@ -537,24 +536,6 @@ export function AdminPage({ section }: { section: AdminSection }) {
                       }}
                     >
                       Edit
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        void call(`/api/admin/documents/${item.id}/reindex`, { method: 'POST' })
-                          .then(() => {
-                            setNotice('Document re-indexed.');
-                            return refresh();
-                          })
-                          .catch((cause) =>
-                            setError(
-                              cause instanceof Error
-                                ? cause.message
-                                : 'Unable to re-index document.',
-                            ),
-                          )
-                      }
-                    >
-                      Re-index
                     </Button>
                     <Button
                       color="error"

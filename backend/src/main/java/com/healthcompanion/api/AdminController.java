@@ -1,6 +1,5 @@
 package com.healthcompanion.api;
 
-import com.healthcompanion.ai.DocumentIngestionService;
 import com.healthcompanion.appointments.AppointmentLifecycleService;
 import com.healthcompanion.documents.LocalDocumentStorage;
 import com.healthcompanion.domain.*;
@@ -29,7 +28,6 @@ public class AdminController {
   private final AppointmentRepository appointments;
   private final MedicalDocumentRepository docs;
   private final LocalDocumentStorage storage;
-  private final DocumentIngestionService ingestion;
   private final AppointmentLifecycleService lifecycle;
 
   public AdminController(
@@ -39,7 +37,6 @@ public class AdminController {
       AppointmentRepository appointments,
       MedicalDocumentRepository docs,
       LocalDocumentStorage storage,
-      DocumentIngestionService ingestion,
       AppointmentLifecycleService lifecycle) {
     this.practitioners = practitioners;
     this.slots = slots;
@@ -47,7 +44,6 @@ public class AdminController {
     this.appointments = appointments;
     this.docs = docs;
     this.storage = storage;
-    this.ingestion = ingestion;
     this.lifecycle = lifecycle;
   }
 
@@ -191,17 +187,7 @@ public class AdminController {
     document.documentDate = documentDate;
     document.mimeType = file.getContentType();
     document.storagePath = storage.save(file);
-    document = docs.save(document);
-    return ingest(document);
-  }
-
-  @PostMapping("/documents/{id}/reindex")
-  public DocumentResponse reindex(@PathVariable Long id) {
-    var document =
-        docs.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    document.status = DocumentStatus.PROCESSING;
-    docs.save(document);
-    return ingest(document);
+    return DocumentResponse.from(docs.save(document));
   }
 
   @GetMapping("/documents")
@@ -236,20 +222,7 @@ public class AdminController {
       storage.delete(storagePath);
     } catch (DataIntegrityViolationException exception) {
       throw new ResponseStatusException(
-          HttpStatus.CONFLICT, "Document is referenced by a conversation and cannot be deleted", exception);
-    }
-  }
-
-  private DocumentResponse ingest(MedicalDocument document) {
-    try {
-      ingestion.ingest(document);
-      document.status = DocumentStatus.AVAILABLE;
-      return DocumentResponse.from(docs.save(document));
-    } catch (Exception exception) {
-      document.status = DocumentStatus.FAILED;
-      docs.save(document);
-      throw new ResponseStatusException(
-          HttpStatus.UNPROCESSABLE_ENTITY, "Document indexing failed", exception);
+          HttpStatus.CONFLICT, "Document cannot be deleted", exception);
     }
   }
 

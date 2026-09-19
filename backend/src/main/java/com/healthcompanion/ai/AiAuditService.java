@@ -1,6 +1,7 @@
 package com.healthcompanion.ai;
 
-import com.healthcompanion.domain.*;
+import com.healthcompanion.domain.AiAuditEvent;
+import com.healthcompanion.domain.AiConversation;
 import com.healthcompanion.repository.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,12 +19,10 @@ public class AiAuditService {
     provider = p;
   }
 
-  public void record(
-      long patientId, AiConversation conversation, AiQueryMode mode, boolean blocked) {
+  public void record(long patientId, AiConversation conversation, boolean blocked) {
     var event = new AiAuditEvent();
     event.patient = users.getReferenceById(patientId);
     event.conversation = conversation;
-    event.mode = mode;
     event.provider = provider;
     event.safetyBlocked = blocked;
     events.save(event);

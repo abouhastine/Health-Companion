@@ -10,7 +10,6 @@ public record DocumentResponse(
     DocumentType documentType,
     LocalDate documentDate,
     PractitionerSummary practitioner,
-    DocumentStatus status,
     Instant createdAt) {
   public static DocumentResponse from(MedicalDocument document) {
     return new DocumentResponse(
@@ -18,9 +17,7 @@ public record DocumentResponse(
         document.title,
         document.documentType,
         document.documentDate,
-        PractitionerSummary.from(document.practitioner),
-        document.status,
-        document.createdAt);
+        PractitionerSummary.from(document.practitioner), document.createdAt);
   }
 
   public record PractitionerSummary(

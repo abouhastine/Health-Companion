@@ -35,6 +35,4 @@ app:
   storage.minio.bucket: ${MINIO_BUCKET:health-documents}
   ai:
     chat-provider: ${AI_CHAT_PROVIDER:none}
-    embedding-provider: ${AI_EMBEDDING_PROVIDER:none}
-    top-k: ${AI_TOP_K:4}
     request-timeout: ${AI_REQUEST_TIMEOUT:120s}

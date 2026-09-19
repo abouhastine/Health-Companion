@@ -14,10 +14,6 @@ public class AiConversation {
   @JoinColumn(name = "patient_id")
   public User patient;
 
-  @ManyToOne
-  @JoinColumn(name = "document_id")
-  public MedicalDocument document;
-
   @Column(name = "created_at")
   public Instant createdAt = Instant.now();
 }

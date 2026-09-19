@@ -39,9 +39,6 @@ public class DocumentController {
   public ResponseEntity<byte[]> download(Authentication a, @PathVariable Long id)
       throws IOException {
     var d = owned(a, id);
-    if (d.status != DocumentStatus.AVAILABLE)
-      throw new ResponseStatusException(
-          HttpStatus.CONFLICT, "The document is not available for download");
     var r = storage.load(d.storagePath);
     var filename = pdfFilename(d.title);
     return ResponseEntity.ok()
