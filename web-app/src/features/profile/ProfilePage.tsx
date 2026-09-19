@@ -14,7 +14,8 @@ import {
   Typography,
 } from '@mui/material';
 import { ErrorMessage } from '../../components/ErrorMessage';
-import { PageHeader, SectionCard } from '../../components/ui';
+import { FormSection, PageHeader, SectionCard } from '../../components/ui';
+import { PersonOutline, PhoneOutlined, LockOutlined } from '@mui/icons-material';
 import { AppShell } from '../../layouts/AppShell';
 import { call } from '../../services/apiClient';
 import { clearSession } from '../../services/session';
@@ -138,48 +139,65 @@ export function ProfilePage() {
               </Box>
             </Stack>
           </SectionCard>
-          <SectionCard title="Personal details">
+          <SectionCard title="Personal details" sx={{ overflow: 'hidden' }}>
             <Stack spacing={2}>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <FormSection
+                icon={<PersonOutline />}
+                title="About you"
+                description="Keep the details your care team uses up to date."
+              >
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <TextField
+                    fullWidth
+                    disabled={!editing}
+                    label="First name"
+                    value={form.firstName}
+                    onChange={(event) => setField('firstName', event.target.value)}
+                  />
+                  <TextField
+                    fullWidth
+                    disabled={!editing}
+                    label="Last name"
+                    value={form.lastName}
+                    onChange={(event) => setField('lastName', event.target.value)}
+                  />
+                </Stack>
+              </FormSection>
+              <FormSection
+                icon={<PhoneOutlined />}
+                title="Contact"
+                description="Your email identifies this account and cannot be changed."
+              >
                 <TextField
                   fullWidth
-                  disabled={!editing}
-                  label="First name"
-                  value={form.firstName}
-                  onChange={(event) => setField('firstName', event.target.value)}
+                  disabled
+                  label="Email"
+                  type="email"
+                  value={form.email}
+                  helperText="Email is your account identifier and cannot be changed."
                 />
                 <TextField
                   fullWidth
                   disabled={!editing}
-                  label="Last name"
-                  value={form.lastName}
-                  onChange={(event) => setField('lastName', event.target.value)}
+                  label="Phone"
+                  value={form.phone}
+                  onChange={(event) => setField('phone', event.target.value)}
                 />
-              </Stack>
-              <TextField
-                fullWidth
-                disabled
-                label="Email"
-                type="email"
-                value={form.email}
-                helperText="Email is your account identifier and cannot be changed."
-              />
-              <TextField
-                fullWidth
-                disabled={!editing}
-                label="Phone"
-                value={form.phone}
-                onChange={(event) => setField('phone', event.target.value)}
-              />
+              </FormSection>
               {editing ? (
-                <TextField
-                  fullWidth
-                  label="New password (optional)"
-                  type="password"
-                  value={form.password}
-                  onChange={(event) => setField('password', event.target.value)}
-                  helperText="Leave blank to keep your current password."
-                />
+                <FormSection
+                  icon={<LockOutlined />}
+                  title="Password"
+                  description="Optional — leave this blank to keep your current password."
+                >
+                  <TextField
+                    fullWidth
+                    label="New password (optional)"
+                    type="password"
+                    value={form.password}
+                    onChange={(event) => setField('password', event.target.value)}
+                  />
+                </FormSection>
               ) : null}
               <Stack direction="row" spacing={1}>
                 {editing ? (

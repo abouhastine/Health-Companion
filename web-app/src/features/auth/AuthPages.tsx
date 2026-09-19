@@ -1,6 +1,21 @@
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Box, Button, Paper, Stack, TextField, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  IconButton,
+  InputAdornment,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
+import {
+  VisibilityOffOutlined,
+  VisibilityOutlined,
+  LockOutlined,
+  MailOutline,
+} from '@mui/icons-material';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { ErrorMessage } from '../../components/ErrorMessage';
@@ -19,6 +34,7 @@ import {
 export function LoginPage() {
   const navigate = useNavigate();
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -55,6 +71,13 @@ export function LoginPage() {
             <TextField
               label="Email"
               type="email"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <MailOutline fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
               autoComplete="email"
               error={Boolean(errors.email)}
               helperText={errors.email?.message}
@@ -62,7 +85,25 @@ export function LoginPage() {
             />
             <TextField
               label="Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockOutlined fontSize="small" />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOffOutlined /> : <VisibilityOutlined />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
               autoComplete="current-password"
               error={Boolean(errors.password)}
               helperText={errors.password?.message}
@@ -85,6 +126,7 @@ export function LoginPage() {
 export function RegisterPage() {
   const navigate = useNavigate();
   const [error, setError] = useState('');
+  const [showPasswords, setShowPasswords] = useState(false);
   const {
     register,
     handleSubmit,
@@ -124,8 +166,25 @@ export function RegisterPage() {
                 required={required}
                 key={name}
                 label={label}
-                type={type}
+                type={type === 'password' && showPasswords ? 'text' : type}
                 autoComplete={autoComplete}
+                InputProps={
+                  type === 'password'
+                    ? {
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label={showPasswords ? 'Hide passwords' : 'Show passwords'}
+                              onClick={() => setShowPasswords(!showPasswords)}
+                              edge="end"
+                            >
+                              {showPasswords ? <VisibilityOffOutlined /> : <VisibilityOutlined />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }
+                    : undefined
+                }
                 error={Boolean(errors[name])}
                 helperText={errors[name]?.message}
                 {...register(name)}

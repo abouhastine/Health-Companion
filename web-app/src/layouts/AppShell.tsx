@@ -30,6 +30,7 @@ import {
 } from '@mui/material';
 import { NavLink, useLocation } from 'react-router-dom';
 import { clearSession, role } from '../services/session';
+import wellnessSheet from '../assets/illustrations/wellness-care-sheet.png';
 
 type NavItem = { label: string; to: string; icon: ReactNode };
 
@@ -246,7 +247,21 @@ export function AuthShell({ children }: PropsWithChildren) {
           <FavoriteBorder />
           <Typography fontWeight={850}>Health Companion</Typography>
         </Stack>
-        <Box maxWidth={430}>
+        <Box maxWidth={440}>
+          <Box
+            component="img"
+            src={wellnessSheet}
+            alt=""
+            sx={{
+              width: 150,
+              height: 150,
+              objectFit: 'cover',
+              objectPosition: 'center top',
+              borderRadius: '50%',
+              mb: 2,
+              display: { md: 'block', lg: 'none' },
+            }}
+          />
           <Typography variant="h3" fontSize={{ md: '2.7rem', lg: '3.4rem' }}>
             A clearer view of your care.
           </Typography>
@@ -256,9 +271,25 @@ export function AuthShell({ children }: PropsWithChildren) {
             Appointments, medical results and trusted explanations—organized around you.
           </Typography>
         </Box>
-        <Typography color="rgba(255,255,255,.62)" variant="body2">
-          Private by design. Health information, not medical advice.
-        </Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Typography color="rgba(255,255,255,.62)" variant="body2">
+            Private by design. Health information, not medical advice.
+          </Typography>
+          <Box
+            component="img"
+            src={wellnessSheet}
+            alt=""
+            sx={{
+              width: 152,
+              height: 152,
+              objectFit: 'cover',
+              objectPosition: 'center top',
+              borderRadius: 5,
+              display: { md: 'none', lg: 'block' },
+              opacity: 0.96,
+            }}
+          />
+        </Stack>
       </Box>
       <Box sx={{ display: 'grid', placeItems: 'center', p: { xs: 2, sm: 5 } }}>{children}</Box>
     </Box>

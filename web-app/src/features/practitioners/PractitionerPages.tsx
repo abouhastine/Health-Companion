@@ -37,7 +37,15 @@ export function PractitionerListPage() {
       ) : null}
       <Stack spacing={2}>
         {items.map((item) => (
-          <SectionCard key={item.id}>
+          <SectionCard
+            key={item.id}
+            sx={{
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 15px 30px rgba(26,70,64,.10)',
+              },
+            }}
+          >
             <Stack
               direction={{ xs: 'column', sm: 'row' }}
               justifyContent="space-between"
@@ -47,7 +55,11 @@ export function PractitionerListPage() {
                 <Typography variant="h6">
                   Dr. {item.firstName} {item.lastName}
                 </Typography>
-                <Chip label={item.specialty} color="primary" variant="outlined" sx={{ mt: 1 }} />
+                <Chip
+                  label={item.specialty}
+                  color="primary"
+                  sx={{ mt: 1, bgcolor: 'primary.light' }}
+                />
                 <Typography sx={{ mt: 1 }}>
                   {item.specialty} · {item.organization}
                 </Typography>
@@ -116,7 +128,7 @@ export function PractitionerDetailPage() {
             title={`Dr. ${item.firstName} ${item.lastName}`}
             description={`${item.specialty} · ${item.organization}`}
           />
-          <SectionCard title="Book an appointment">
+          <SectionCard title="Book an appointment" sx={{ bgcolor: 'rgba(255,255,255,.94)' }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
               <Chip
                 icon={<LocationOnOutlined />}
@@ -145,14 +157,36 @@ export function PractitionerDetailPage() {
                 </Typography>
               ) : null}
               {slots.map((slot) => (
-                <SectionCard key={slot.id} sx={{ p: 2 }}>
+                <SectionCard
+                  key={slot.id}
+                  sx={{
+                    p: 2,
+                    bgcolor: '#f8fcfb',
+                    borderColor: 'rgba(15,118,110,.16)',
+                    '&:hover': { transform: 'translateY(-1px)' },
+                  }}
+                >
                   <Stack
                     direction={{ xs: 'column', sm: 'row' }}
                     justifyContent="space-between"
                     alignItems={{ sm: 'center' }}
                     spacing={1}
                   >
-                    <Typography>{new Date(slot.startAt).toLocaleString()}</Typography>
+                    <Box>
+                      <Typography fontWeight={800}>
+                        {new Date(slot.startAt).toLocaleDateString([], {
+                          weekday: 'long',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </Typography>
+                      <Typography color="text.secondary" variant="body2">
+                        {new Date(slot.startAt).toLocaleTimeString([], {
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </Typography>
+                    </Box>
                     <Button variant="contained" onClick={() => book(slot.id)}>
                       Book appointment
                     </Button>

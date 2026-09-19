@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Chip, Stack, Typography } from '@mui/material';
-import {
-  CalendarMonthOutlined,
-  DescriptionOutlined,
-  PsychologyOutlined,
-} from '@mui/icons-material';
+import { Box, Button, Stack, Typography } from '@mui/material';
+import { CalendarMonthOutlined, DescriptionOutlined } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { ErrorMessage } from '../../components/ErrorMessage';
-import { PageHeader, SectionCard } from '../../components/ui';
+import { FeatureBadge, PageHeader, SectionCard } from '../../components/ui';
+import wellnessSheet from '../../assets/illustrations/wellness-care-sheet.png';
 import { AppShell } from '../../layouts/AppShell';
 import { call } from '../../services/apiClient';
 import type { Appointment, Document, UserProfile } from '../../types/domain';
@@ -62,7 +59,7 @@ export function PatientHomePage() {
         >
           <SectionCard
             title="Next appointment"
-            sx={{ height: '100%', bgcolor: 'rgba(255,255,255,.82)' }}
+            sx={{ height: '100%', bgcolor: '#edfaf7', borderColor: 'rgba(15,118,110,.16)' }}
             action={<CalendarMonthOutlined color="primary" />}
           >
             <Typography color="text.secondary" sx={{ minHeight: 50 }}>
@@ -83,7 +80,7 @@ export function PatientHomePage() {
           </SectionCard>
           <SectionCard
             title="Latest medical result"
-            sx={{ height: '100%', bgcolor: 'rgba(255,255,255,.82)' }}
+            sx={{ height: '100%', bgcolor: '#f2f8fc', borderColor: 'rgba(67,134,168,.16)' }}
             action={<DescriptionOutlined color="primary" />}
           >
             <Typography color="text.secondary" sx={{ minHeight: 50 }}>
@@ -99,7 +96,14 @@ export function PatientHomePage() {
               {latestResult ? 'Open latest result' : 'View my results'}
             </Button>
           </SectionCard>
-          <SectionCard sx={{ gridColumn: { md: '1 / -1' }, bgcolor: 'secondary.light', border: 0 }}>
+          <SectionCard
+            sx={{
+              gridColumn: { md: '1 / -1' },
+              bgcolor: 'secondary.light',
+              border: 0,
+              overflow: 'hidden',
+            }}
+          >
             <Stack
               direction={{ xs: 'column', sm: 'row' }}
               alignItems={{ sm: 'center' }}
@@ -107,12 +111,7 @@ export function PatientHomePage() {
               spacing={2}
             >
               <Box>
-                <Chip
-                  icon={<PsychologyOutlined />}
-                  label="Health assistant"
-                  color="primary"
-                  sx={{ mb: 1 }}
-                />
+                <FeatureBadge>Health assistant</FeatureBadge>
                 <Typography variant="h6">Need help understanding health information?</Typography>
                 <Typography color="text.secondary">
                   Ask for a clear, source-grounded explanation of your available results.
@@ -121,6 +120,19 @@ export function PatientHomePage() {
               <Button component={Link} to="/assistant" variant="contained">
                 Open assistant
               </Button>
+              <Box
+                component="img"
+                src={wellnessSheet}
+                alt=""
+                sx={{
+                  width: 100,
+                  height: 100,
+                  objectFit: 'cover',
+                  objectPosition: 'center 100%',
+                  borderRadius: 3,
+                  display: { xs: 'none', md: 'block' },
+                }}
+              />
             </Stack>
           </SectionCard>
         </Box>

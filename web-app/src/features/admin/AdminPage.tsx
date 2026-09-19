@@ -26,7 +26,7 @@ import {
 } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
 import { ErrorMessage } from '../../components/ErrorMessage';
-import { PageHeader } from '../../components/ui';
+import { PageHeader, ResponsiveRecordList } from '../../components/ui';
 import { AppShell } from '../../layouts/AppShell';
 import { call } from '../../services/apiClient';
 import type { Appointment, Document, Practitioner, Slot, UserProfile } from '../../types/domain';
@@ -388,43 +388,46 @@ export function AdminPage({ section }: { section: AdminSection }) {
                 </Stack>
               </Stack>
               <Divider sx={{ my: 2 }} />
-              <Stack spacing={1}>
-                {accounts.map((account) => (
-                  <Stack
-                    key={account.id}
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={1}
-                    alignItems={{ sm: 'center' }}
-                  >
-                    <Typography sx={{ flexGrow: 1 }}>
-                      {account.firstName} {account.lastName} · {account.email} · {account.role}
-                    </Typography>
-                    <Button
-                      onClick={() => {
-                        setEditingUser(account.id);
-                        setUser({
-                          firstName: account.firstName,
-                          lastName: account.lastName,
-                          email: account.email,
-                          phone: account.phone || '',
-                          password: '',
-                          role: account.role,
-                        });
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      color="error"
-                      onClick={() =>
-                        setDeleteTarget({ kind: 'user', id: account.id, label: account.email })
-                      }
-                    >
-                      Delete
-                    </Button>
-                  </Stack>
-                ))}
-              </Stack>
+              <ResponsiveRecordList
+                columns={['Name', 'Email', 'Role']}
+                rows={accounts.map((account) => ({
+                  key: account.id,
+                  cells: [
+                    <Typography fontWeight={700}>
+                      {account.firstName} {account.lastName}
+                    </Typography>,
+                    account.email,
+                    account.role,
+                  ],
+                  actions: (
+                    <>
+                      <Button
+                        onClick={() => {
+                          setEditingUser(account.id);
+                          setUser({
+                            firstName: account.firstName,
+                            lastName: account.lastName,
+                            email: account.email,
+                            phone: account.phone || '',
+                            password: '',
+                            role: account.role,
+                          });
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        color="error"
+                        onClick={() =>
+                          setDeleteTarget({ kind: 'user', id: account.id, label: account.email })
+                        }
+                      >
+                        Delete
+                      </Button>
+                    </>
+                  ),
+                }))}
+              />
             </CardContent>
           </Card>
         ) : null}
@@ -514,59 +517,62 @@ export function AdminPage({ section }: { section: AdminSection }) {
                   </Stack>
                 </Stack>
               ) : null}
-              <Stack spacing={1} sx={{ mt: 2 }}>
-                {documents.map((item) => (
-                  <Stack
-                    key={item.id}
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={1}
-                    alignItems={{ sm: 'center' }}
-                  >
-                    <Typography sx={{ flexGrow: 1 }}>
-                      {item.title} · {item.documentType.replaceAll('_', ' ')} · {item.status}
-                    </Typography>
-                    <Button
-                      onClick={() => {
-                        setEditingDocument(item.id);
-                        setDocument({
-                          title: item.title,
-                          documentType: item.documentType,
-                          documentDate: item.documentDate,
-                          practitionerId: item.practitioner?.id?.toString() || '',
-                        });
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        void call(`/api/admin/documents/${item.id}/reindex`, { method: 'POST' })
-                          .then(() => {
-                            setNotice('Document re-indexed.');
-                            return refresh();
-                          })
-                          .catch((cause) =>
-                            setError(
-                              cause instanceof Error
-                                ? cause.message
-                                : 'Unable to re-index document.',
-                            ),
-                          )
-                      }
-                    >
-                      Re-index
-                    </Button>
-                    <Button
-                      color="error"
-                      onClick={() =>
-                        setDeleteTarget({ kind: 'document', id: item.id, label: item.title })
-                      }
-                    >
-                      Delete
-                    </Button>
-                  </Stack>
-                ))}
-              </Stack>
+              <Box sx={{ mt: 2 }}>
+                <ResponsiveRecordList
+                  columns={['Title', 'Type', 'Status']}
+                  rows={documents.map((item) => ({
+                    key: item.id,
+                    cells: [
+                      <Typography fontWeight={700}>{item.title}</Typography>,
+                      item.documentType.replaceAll('_', ' '),
+                      item.status,
+                    ],
+                    actions: (
+                      <>
+                        <Button
+                          onClick={() => {
+                            setEditingDocument(item.id);
+                            setDocument({
+                              title: item.title,
+                              documentType: item.documentType,
+                              documentDate: item.documentDate,
+                              practitionerId: item.practitioner?.id?.toString() || '',
+                            });
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={() =>
+                            void call(`/api/admin/documents/${item.id}/reindex`, { method: 'POST' })
+                              .then(() => {
+                                setNotice('Document re-indexed.');
+                                return refresh();
+                              })
+                              .catch((cause) =>
+                                setError(
+                                  cause instanceof Error
+                                    ? cause.message
+                                    : 'Unable to re-index document.',
+                                ),
+                              )
+                          }
+                        >
+                          Re-index
+                        </Button>
+                        <Button
+                          color="error"
+                          onClick={() =>
+                            setDeleteTarget({ kind: 'document', id: item.id, label: item.title })
+                          }
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    ),
+                  }))}
+                />
+              </Box>
             </CardContent>
           </Card>
         ) : null}
@@ -603,40 +609,49 @@ export function AdminPage({ section }: { section: AdminSection }) {
                 </Stack>
               </Stack>
               <Divider sx={{ my: 2 }} />
-              {practitioners.map((item) => (
-                <Stack key={item.id} direction="row" spacing={1} alignItems="center">
-                  <Typography sx={{ flexGrow: 1 }}>
-                    Dr. {item.firstName} {item.lastName} · {item.specialty}
-                  </Typography>
-                  <Button
-                    onClick={() => {
-                      setEditing(item.id);
-                      setPractitioner({
-                        firstName: item.firstName,
-                        lastName: item.lastName,
-                        specialty: item.specialty,
-                        organization: item.organization,
-                        address: item.address || '',
-                        languages: item.languages || '',
-                      });
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    color="error"
-                    onClick={() =>
-                      setDeleteTarget({
-                        kind: 'practitioner',
-                        id: item.id,
-                        label: `Dr. ${item.firstName} ${item.lastName}`,
-                      })
-                    }
-                  >
-                    Delete
-                  </Button>
-                </Stack>
-              ))}
+              <ResponsiveRecordList
+                columns={['Practitioner', 'Specialty']}
+                rows={practitioners.map((item) => ({
+                  key: item.id,
+                  cells: [
+                    <Typography fontWeight={700}>
+                      Dr. {item.firstName} {item.lastName}
+                    </Typography>,
+                    item.specialty,
+                  ],
+                  actions: (
+                    <>
+                      <Button
+                        onClick={() => {
+                          setEditing(item.id);
+                          setPractitioner({
+                            firstName: item.firstName,
+                            lastName: item.lastName,
+                            specialty: item.specialty,
+                            organization: item.organization,
+                            address: item.address || '',
+                            languages: item.languages || '',
+                          });
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        color="error"
+                        onClick={() =>
+                          setDeleteTarget({
+                            kind: 'practitioner',
+                            id: item.id,
+                            label: `Dr. ${item.firstName} ${item.lastName}`,
+                          })
+                        }
+                      >
+                        Delete
+                      </Button>
+                    </>
+                  ),
+                }))}
+              />
             </CardContent>
           </Card>
         ) : null}
@@ -679,47 +694,53 @@ export function AdminPage({ section }: { section: AdminSection }) {
                   Add slot
                 </Button>
               </Stack>
-              <Stack spacing={1} sx={{ mt: 2 }}>
-                {slots.map((item) => (
-                  <Stack key={item.id} direction="row" spacing={1} alignItems="center">
-                    <Typography sx={{ flexGrow: 1 }}>
-                      {new Date(item.startAt).toLocaleString()} ·{' '}
-                      {item.available ? 'Available' : 'Unavailable'}
-                    </Typography>
-                    <Button
-                      onClick={() => {
-                        void call(`/api/admin/slots/${item.id}`, {
-                          method: 'PUT',
-                          body: JSON.stringify({
-                            startAt: item.startAt,
-                            endAt: item.endAt,
-                            available: !item.available,
-                          }),
-                        }).then(() => {
-                          if (selected)
-                            return call<Slot[]>(`/api/admin/practitioners/${selected}/slots`).then(
-                              setSlots,
-                            );
-                        });
-                      }}
-                    >
-                      {item.available ? 'Mark unavailable' : 'Mark available'}
-                    </Button>
-                    <Button
-                      color="error"
-                      onClick={() =>
-                        setDeleteTarget({
-                          kind: 'slot',
-                          id: item.id,
-                          label: `slot on ${new Date(item.startAt).toLocaleString()}`,
-                        })
-                      }
-                    >
-                      Delete
-                    </Button>
-                  </Stack>
-                ))}
-              </Stack>
+              <Box sx={{ mt: 2 }}>
+                <ResponsiveRecordList
+                  columns={['Start', 'Status']}
+                  rows={slots.map((item) => ({
+                    key: item.id,
+                    cells: [
+                      new Date(item.startAt).toLocaleString(),
+                      item.available ? 'Available' : 'Unavailable',
+                    ],
+                    actions: (
+                      <>
+                        <Button
+                          onClick={() => {
+                            void call(`/api/admin/slots/${item.id}`, {
+                              method: 'PUT',
+                              body: JSON.stringify({
+                                startAt: item.startAt,
+                                endAt: item.endAt,
+                                available: !item.available,
+                              }),
+                            }).then(() => {
+                              if (selected)
+                                return call<Slot[]>(
+                                  `/api/admin/practitioners/${selected}/slots`,
+                                ).then(setSlots);
+                            });
+                          }}
+                        >
+                          {item.available ? 'Mark unavailable' : 'Mark available'}
+                        </Button>
+                        <Button
+                          color="error"
+                          onClick={() =>
+                            setDeleteTarget({
+                              kind: 'slot',
+                              id: item.id,
+                              label: `slot on ${new Date(item.startAt).toLocaleString()}`,
+                            })
+                          }
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    ),
+                  }))}
+                />
+              </Box>
             </CardContent>
           </Card>
         ) : null}
@@ -817,36 +838,45 @@ export function AdminPage({ section }: { section: AdminSection }) {
               <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5, mb: 2 }}>
                 Update appointment status or delete an appointment when appropriate.
               </Typography>
-              {appointments.map((item) => (
-                <Stack key={item.id} direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                  <Typography sx={{ flexGrow: 1 }}>
-                    #{item.id} · {item.patient?.firstName} {item.patient?.lastName} · Dr.{' '}
-                    {item.practitioner?.lastName} · {item.status}
-                  </Typography>
-                  {item.status === 'CONFIRMED' ? (
-                    <Button onClick={() => void changeAppointmentStatus(item.id, 'CANCELLED')}>
-                      Cancel
-                    </Button>
-                  ) : null}
-                  {item.status === 'CONFIRMED' ? (
-                    <Button onClick={() => void changeAppointmentStatus(item.id, 'COMPLETED')}>
-                      Complete
-                    </Button>
-                  ) : null}
-                  <Button
-                    color="error"
-                    onClick={() =>
-                      setDeleteTarget({
-                        kind: 'appointment',
-                        id: item.id,
-                        label: `appointment #${item.id}`,
-                      })
-                    }
-                  >
-                    Delete
-                  </Button>
-                </Stack>
-              ))}
+              <ResponsiveRecordList
+                columns={['Patient', 'Practitioner', 'Status']}
+                rows={appointments.map((item) => ({
+                  key: item.id,
+                  cells: [
+                    <Typography fontWeight={700}>
+                      {item.patient?.firstName} {item.patient?.lastName}
+                    </Typography>,
+                    `Dr. ${item.practitioner?.lastName}`,
+                    item.status,
+                  ],
+                  actions: (
+                    <>
+                      {item.status === 'CONFIRMED' ? (
+                        <Button onClick={() => void changeAppointmentStatus(item.id, 'CANCELLED')}>
+                          Cancel
+                        </Button>
+                      ) : null}
+                      {item.status === 'CONFIRMED' ? (
+                        <Button onClick={() => void changeAppointmentStatus(item.id, 'COMPLETED')}>
+                          Complete
+                        </Button>
+                      ) : null}
+                      <Button
+                        color="error"
+                        onClick={() =>
+                          setDeleteTarget({
+                            kind: 'appointment',
+                            id: item.id,
+                            label: `appointment #${item.id}`,
+                          })
+                        }
+                      >
+                        Delete
+                      </Button>
+                    </>
+                  ),
+                }))}
+              />
             </CardContent>
           </Card>
         ) : null}

@@ -99,7 +99,12 @@ export function AppointmentsPage() {
                   {section.title}
                 </Typography>
                 {section.items.map((item) => (
-                  <SectionCard key={item.id}>
+                  <SectionCard
+                    key={item.id}
+                    sx={{
+                      borderLeft: section.title === 'Upcoming' ? '4px solid #0f766e' : undefined,
+                    }}
+                  >
                     <Stack
                       direction={{ xs: 'column', sm: 'row' }}
                       justifyContent="space-between"
@@ -110,7 +115,16 @@ export function AppointmentsPage() {
                           Dr. {item.practitioner.firstName} {item.practitioner.lastName}
                         </Typography>
                         <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-                          {new Date(item.slot.startAt).toLocaleString()}
+                          {new Date(item.slot.startAt).toLocaleDateString([], {
+                            weekday: 'long',
+                            month: 'long',
+                            day: 'numeric',
+                          })}{' '}
+                          ·{' '}
+                          {new Date(item.slot.startAt).toLocaleTimeString([], {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                          })}
                         </Typography>
                         {item.reason ? (
                           <Typography color="text.secondary" sx={{ mt: 1 }}>
@@ -152,8 +166,22 @@ export function AppointmentsPage() {
           <Stack spacing={1}>
             {availableSlots.length ? (
               availableSlots.map((slot) => (
-                <Button key={slot.id} variant="outlined" onClick={() => void reschedule(slot.id)}>
-                  {new Date(slot.startAt).toLocaleString()}
+                <Button
+                  key={slot.id}
+                  variant="outlined"
+                  onClick={() => void reschedule(slot.id)}
+                  sx={{ justifyContent: 'flex-start', textAlign: 'left', p: 1.5, borderRadius: 3 }}
+                >
+                  {new Date(slot.startAt).toLocaleDateString([], {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                  })}{' '}
+                  ·{' '}
+                  {new Date(slot.startAt).toLocaleTimeString([], {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                  })}
                 </Button>
               ))
             ) : (
