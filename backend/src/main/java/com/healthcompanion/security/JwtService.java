@@ -23,11 +23,19 @@ public class JwtService {
   }
 
   public String issue(User user) {
+    return issue(user, expiration);
+  }
+
+  public String issueMobile(User user, long accessExpirationMinutes) {
+    return issue(user, accessExpirationMinutes);
+  }
+
+  private String issue(User user, long expirationMinutes) {
     return Jwts.builder()
         .subject(user.id.toString())
         .claim("role", user.role.name())
         .issuedAt(new Date())
-        .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(expiration))))
+        .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(expirationMinutes))))
         .signWith(key)
         .compact();
   }

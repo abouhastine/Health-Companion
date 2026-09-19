@@ -24,7 +24,7 @@ with the repository. This is an external acceptance activity rather than missing
 | Spring Boot project | Complete | Java 21, Spring Boot 3.4, Maven wrapper, Web, Security, Validation, JPA, Actuator, OpenAPI |
 | React project | Complete | React 18, strict TypeScript, Vite, MUI, Router, Query provider, Hook Form, Zod, Vitest |
 | PostgreSQL | Complete | PostgreSQL 16/pgvector runtime and Testcontainers integration |
-| Liquibase | Complete | Four forward-only changesets; Hibernate uses `ddl-auto=validate` |
+| Liquibase | Complete | Six forward-only changesets; Hibernate uses `ddl-auto=validate` |
 | Docker Compose | Complete | pgvector PostgreSQL healthcheck and MinIO object-storage service |
 | Authentication foundation | Complete | Stateless Security filter chain, BCrypt, signed/expiring JWT, database-backed roles |
 | Base UI layout | Complete | Reusable MUI theme, application shell, error boundary, providers, role-aware navigation |
@@ -139,17 +139,33 @@ configurable, and routing/retrieval/business logic is provider-independent.
     configured Ollama/OpenAI dimensions → vectors are now dimension-agnostic, each chunk persists
     its embedding dimension, and retrieval requires both matching provider profile and dimension.
 
+## Mobile beta — implemented source and backend contract
+
+The separate patient mobile beta is specified in `docs/health-companion-mobile-beta-spec.md` and
+implemented in `mobile-app/`. It is intentionally distinct from the completed web-demo scope.
+
+| Area | Status | Evidence |
+| --- | --- | --- |
+| Mobile app shell | Complete | Expo Router tabs for Home, Find care, Appointments, Results, and Assistant, plus patient auth/profile/detail flows |
+| Patient features | Complete | Registration/login, practitioner slots, booking/reschedule/cancel, results/PDF viewing, general and document-scoped assistant flows |
+| Mobile sessions | Complete | Mobile-only auth endpoints; 15-minute access JWTs; rotating, hashed, revocable refresh tokens persisted in `mobile_sessions` |
+| Secure re-entry | Complete | Expo SecureStore with biometric/device-passcode protection and in-memory access tokens |
+| Beta configuration | Complete | HTTPS API environment template and EAS internal-distribution profiles for iOS and Android |
+| Device/store acceptance | Pending external activity | Requires a configured HTTPS demo deployment, signed Apple/Google accounts, and physical/simulator device testing |
+
 ## Verification evidence
 
 | Check | Result |
 | --- | --- |
-| Backend unit tests | Passed — 9 tests |
+| Backend unit tests | Passed — 14 tests, including mobile session issue/rotation/expiry/revocation |
 | PostgreSQL/Liquibase schema integration | Passed against `pgvector/pgvector:pg16` |
 | Complete demo-flow integration | Passed against real pgvector PostgreSQL and MinIO |
-| Integration tests | Passed — 2 integration tests |
+| Integration tests | Passed — 5 integration tests, including mobile register/refresh/replay/logout flow |
 | Frontend lint | Passed with zero warnings |
 | Frontend tests | Passed — 3 tests |
 | Frontend TypeScript/Vite production build | Passed |
+| Mobile lint, unit test, and TypeScript checks | Passed — Expo workspace lint, Jest API test, and strict `tsc --noEmit` |
+| Mobile device/TestFlight/Play validation | Not run: requires supplied app-store credentials, HTTPS demo hostname, and devices |
 | Docker Compose validation | Passed |
 | Live Spring Boot demo-profile startup | Passed against Compose PostgreSQL/MinIO |
 | Live Vite startup | Passed |

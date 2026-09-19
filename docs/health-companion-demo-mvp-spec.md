@@ -18,7 +18,9 @@ The goal is to demonstrate a credible end-to-end healthcare workflow with:
 
 The demo focuses only on a **Web App**.
 
-Mobile applications, advanced healthcare integrations, telemedicine, and enterprise-grade workflows are outside the demo scope.
+Mobile applications, advanced healthcare integrations, telemedicine, and enterprise-grade workflows are outside the demo scope. A separate, planned patient mobile beta is defined in
+`docs/health-companion-mobile-beta-spec.md`; it does not change this web-demo specification or its
+completion criteria.
 
 ---
 

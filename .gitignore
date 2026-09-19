@@ -43,6 +43,9 @@ backend/target/
 web-app/node_modules/
 web-app/dist/
 web-app/coverage/
+mobile-app/node_modules/
+mobile-app/.expo/
+mobile-app/coverage/
 *.tsbuildinfo
 backend/var/
 var/

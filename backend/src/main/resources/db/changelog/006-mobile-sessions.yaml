@@ -1,0 +1,60 @@
+databaseChangeLog:
+  - changeSet:
+      id: mobile-sessions
+      author: codex
+      changes:
+        - createTable:
+            tableName: mobile_sessions
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_mobile_sessions_user
+                    references: users(id)
+              - column:
+                  name: refresh_token_hash
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: platform
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: device_name
+                  type: VARCHAR(120)
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: revoked_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: mobile_sessions
+            indexName: idx_mobile_sessions_user
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            tableName: mobile_sessions
+            indexName: idx_mobile_sessions_expires_at
+            columns:
+              - column:
+                  name: expires_at

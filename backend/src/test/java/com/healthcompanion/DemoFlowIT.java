@@ -295,6 +295,43 @@ class DemoFlowIT {
         .andExpect(status().isNoContent());
   }
 
+  @Test
+  void rotatesAndRevokesMobilePatientSessionsWithoutChangingWebAuth() throws Exception {
+    var registered =
+        performJson(
+            post("/api/auth/mobile/register"),
+            null,
+            Map.of(
+                "firstName", "Mobile",
+                "lastName", "Patient",
+                "email", "mobile-session@example.test",
+                "phone", "+33123456789",
+                "password", "DemoPassword1!",
+                "confirmPassword", "DemoPassword1!",
+                "platform", "IOS",
+                "deviceName", "iPhone test"),
+            201);
+    var firstAccess = registered.path("session").path("accessToken").asText();
+    var firstRefresh = registered.path("session").path("refreshToken").asText();
+    org.junit.jupiter.api.Assertions.assertEquals(900, registered.path("session").path("expiresInSeconds").asLong());
+
+    mvc.perform(get("/api/users/me").header(HttpHeaders.AUTHORIZATION, bearer(firstAccess)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.email").value("mobile-session@example.test"));
+
+    var rotated =
+        performJson(post("/api/auth/mobile/refresh"), null, Map.of("refreshToken", firstRefresh), 200);
+    var secondRefresh = rotated.path("refreshToken").asText();
+    org.junit.jupiter.api.Assertions.assertNotEquals(firstRefresh, secondRefresh);
+    performJson(post("/api/auth/mobile/refresh"), null, Map.of("refreshToken", firstRefresh), 401);
+    mvc.perform(
+            post("/api/auth/mobile/logout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsBytes(Map.of("refreshToken", secondRefresh))))
+        .andExpect(status().isNoContent());
+    performJson(post("/api/auth/mobile/refresh"), null, Map.of("refreshToken", secondRefresh), 401);
+  }
+
   private Session register(String email) throws Exception {
     var response =
         performJson(

@@ -48,7 +48,7 @@ class PostgresLiquibaseIT {
             jdbc.queryForObject(
                 "select count(*) from databasechangelog where exectype = 'EXECUTED'",
                 Integer.class))
-        .isEqualTo(5);
+        .isEqualTo(6);
     assertThat(
             jdbc.queryForObject(
                 "select count(*) from pg_extension where extname = 'vector'", Integer.class))

@@ -1,6 +1,6 @@
 # Health Companion
 
-Health Companion is a (for now) MVP for patient registration, practitioner booking, medical-result storage, and source-grounded AI explanations. It runs a Spring Boot API, React/Vite web app, PostgreSQL with pgvector, MinIO object storage, Liquibase, and either local Ollama or OpenAI.
+Health Companion is a (for now) web MVP for patient registration, practitioner booking, medical-result storage, and source-grounded AI explanations. It runs a Spring Boot API, React/Vite web app, PostgreSQL with pgvector, MinIO object storage, Liquibase, and either local Ollama or OpenAI. A React Native/Expo iOS and Android patient beta is also included; see [the mobile beta specification](docs/health-companion-mobile-beta-spec.md).
 
 ## Prerequisites
 
@@ -246,5 +246,29 @@ docker compose up -d --wait
 cd backend && ./mvnw test && ./mvnw verify -Pintegration
 cd ../web-app && npm run format:check && npm run lint && npm test && npm run build
 ```
+
+## Mobile beta
+
+`mobile-app/` is a patient-only React Native/Expo client for private TestFlight and Google Play
+internal testing. It supports the current patient journey—secure sign-in, practitioner discovery,
+appointments, results/PDF viewing, and safe AI explanations—and deliberately excludes admin tools,
+push, offline mode, camera/file upload, OTP, and localization.
+
+Use only synthetic/anonymized data. The mobile app requires a reachable **HTTPS** demo API; do not
+point it at a real patient-data environment. To run it after configuring the API URL:
+
+```bash
+cd mobile-app
+cp .env.example .env
+# Set EXPO_PUBLIC_API_URL to the HTTPS demo API.
+npm ci
+npm run start
+```
+
+Use `npm run ios` or `npm run android` for simulator/device development. EAS `preview` builds are
+for TestFlight and Google Play internal testing. Bundle identifiers, signing credentials, store
+accounts, and the HTTPS API hostname are deployment inputs and are not committed. See [the mobile
+beta specification](docs/health-companion-mobile-beta-spec.md) for the session model, limitations,
+and acceptance criteria.
 
 Liquibase owns the schema; add only forward migrations. Never commit `.env`, real JWT secrets, or OpenAI keys. See [Repository Guidelines](AGENTS.md) for contributor conventions and [the MVP specification](docs/health-companion-demo-mvp-spec.md) for the intended workflow.

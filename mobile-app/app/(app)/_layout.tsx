@@ -1,0 +1,2 @@
+import { Stack, Redirect } from 'expo-router'; import { useSession } from '../../src/session';
+export default function AppLayout() { const { signedIn } = useSession(); if (!signedIn) return <Redirect href="/(auth)/login" />; return <Stack><Stack.Screen name="(tabs)" options={{ headerShown: false }} /><Stack.Screen name="practitioners/[id]" options={{ title: 'Practitioner' }} /><Stack.Screen name="documents/[id]" options={{ title: 'Medical result' }} /><Stack.Screen name="profile" options={{ title: 'Profile' }} /></Stack>; }

@@ -1188,28 +1188,22 @@ The Design System must support:
 
 # 29. Mobile App
 
-The mobile technology should be selected according to the client's roadmap.
+The first mobile release is a patient-only private beta for iOS and Android. It uses one
+**React Native + Expo** codebase, selected to avoid parallel feature, accessibility, safety, test,
+and release maintenance while still producing native platform binaries. See
+`docs/health-companion-mobile-beta-spec.md` for its implemented scope and security contract.
 
-## Option A — Native Android
+The beta is English-only, online-only, and limited to synthetic/anonymized demo data. It includes
+secure mobile sessions and biometric/device-passcode protected re-entry, but excludes the
+practitioner/admin workspaces, push notifications, offline data, patient document capture, OTP,
+French/Arabic/RTL, and real-patient-data processing.
 
-- Kotlin
-- Jetpack Compose
-- Hilt
-- Retrofit
-- Kotlin Coroutines
-- DataStore
+## Future platform decision points
 
-## Option B — Cross-Platform
-
-If both Android and iOS are required early:
-
-- Flutter
-
-or
-
-- React Native
-
-The decision should be captured in an Architecture Decision Record (ADR).
+Separate SwiftUI and Kotlin/Jetpack Compose clients may be reconsidered only when a concrete
+platform-specific requirement outweighs the cost of maintaining two implementations. French,
+Arabic, RTL layouts, mobile camera/file upload, notifications, and production security/compliance
+remain product-roadmap capabilities rather than first-beta promises.
 
 ---
 
