@@ -254,21 +254,21 @@ internal testing. It supports the current patient journey—secure sign-in, prac
 appointments, results/PDF viewing, and safe AI explanations—and deliberately excludes admin tools,
 push, offline mode, camera/file upload, OTP, and localization.
 
-Use only synthetic/anonymized data. The mobile app requires a reachable **HTTPS** demo API; do not
-point it at a real patient-data environment. To run it after configuring the API URL:
+Use only synthetic/anonymized data. Local development may use HTTP; preview and production builds
+require a reachable **HTTPS** demo API. Do not point the app at a real patient-data environment.
+To run it locally:
 
 ```bash
 cd mobile-app
 cp .env.example .env
-# Set EXPO_PUBLIC_API_URL to the HTTPS demo API.
+# .env defaults to APP_ENV=local and http://localhost:8080.
 npm ci
-npm run start
+npm run web
 ```
 
-Use `npm run ios` or `npm run android` for simulator/device development. EAS `preview` builds are
-for TestFlight and Google Play internal testing. Bundle identifiers, signing credentials, store
-accounts, and the HTTPS API hostname are deployment inputs and are not committed. See [the mobile
-beta specification](docs/health-companion-mobile-beta-spec.md) for the session model, limitations,
-and acceptance criteria.
+Use `npm run ios` or `npm run android` with an EAS `development` build for local native testing.
+For a physical device, replace `localhost` with the development machine's LAN IP. EAS `preview`
+and `production` builds must receive an HTTPS `EXPO_PUBLIC_API_BASE_URL`. See [the mobile setup and
+test plan](docs/mobile-app-setup-and-test-plan.md) for browser, emulator, and device commands.
 
 Liquibase owns the schema; add only forward migrations. Never commit `.env`, real JWT secrets, or OpenAI keys. See [Repository Guidelines](AGENTS.md) for contributor conventions and [the MVP specification](docs/health-companion-demo-mvp-spec.md) for the intended workflow.

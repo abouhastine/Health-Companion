@@ -23,9 +23,14 @@ export function SessionProvider({ children }: PropsWithChildren) {
     } catch { setAccessToken(); setSignedIn(false); return false; }
   }
   async function signOut() {
-    const refresh = await SecureStore.getItemAsync(REFRESH_KEY, { requireAuthentication: true });
-    if (refresh) { try { await mobileLogout(refresh); } catch { /* local sign-out still clears credentials */ } }
-    await SecureStore.deleteItemAsync(REFRESH_KEY); setAccessToken(); setSignedIn(false);
+    setAccessToken(); setSignedIn(false);
+    try {
+      const refresh = await SecureStore.getItemAsync(REFRESH_KEY, { requireAuthentication: true });
+      if (refresh) await mobileLogout(refresh);
+    } catch { /* cancelling authentication or a remote failure must not restore the session */ }
+    finally {
+      try { await SecureStore.deleteItemAsync(REFRESH_KEY); } catch { /* state is already signed out */ }
+    }
   }
   return <SessionContext.Provider value={{ ready, signedIn, completeAuth, unlock, signOut }}>{children}</SessionContext.Provider>;
 }

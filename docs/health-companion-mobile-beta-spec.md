@@ -49,15 +49,18 @@ existing non-streaming endpoint. Existing authorization and AI safety responses 
 
 ## Configuration and release
 
-Copy `mobile-app/.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` to the HTTPS demo API. Do
-not put API keys, JWT secrets, or real-health-data endpoints in the Expo client. Final bundle IDs,
-signing credentials, store accounts, and crash-reporting configuration are release inputs and must
-be supplied outside source control.
+Copy `mobile-app/.env.example` to `.env`. The single API setting is
+`EXPO_PUBLIC_API_BASE_URL`. `APP_ENV=local` permits an HTTP URL for browser, emulator/simulator,
+and development-build testing only. `APP_ENV=preview` and `APP_ENV=production` reject non-HTTPS
+URLs and have no native cleartext exception. A physical device reaches a local backend through the
+development machine's LAN IP, not `localhost`. Do not put API keys, JWT secrets, or real-health-
+data endpoints in the Expo client. Final bundle IDs, signing credentials, store accounts, and
+crash-reporting configuration are release inputs and must be supplied outside source control.
 
-Use `npm ci`, `npm run start`, `npm run ios`, or `npm run android` during development. Use the EAS
-`preview` profile for TestFlight and Google Play internal-test artifacts. The build must not be
-promoted to public stores until product, security, privacy, operational, and regulatory readiness
-have been separately approved.
+Use `npm ci`, `npm run web`, `npm run ios`, or `npm run android` during development. The EAS
+`development` profile is for local native testing; `preview` is an HTTPS-only internal artifact and
+`production` is an HTTPS-only store artifact. The build must not be promoted to public stores until
+product, security, privacy, operational, and regulatory readiness have been separately approved.
 
 ## Acceptance criteria
 
