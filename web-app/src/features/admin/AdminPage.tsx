@@ -823,11 +823,39 @@ export function AdminPage({ section }: { section: AdminSection }) {
           <Card sx={{ borderRadius: 3 }}>
             <CardContent>
               <Typography variant="h6">Patients</Typography>
-              {patients.map((patient) => (
-                <Typography key={patient.id}>
-                  {patient.firstName} {patient.lastName} — {patient.email}
-                </Typography>
-              ))}
+              <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5, mb: 2 }}>
+                Patient accounts available for medical-document management.
+              </Typography>
+              <ResponsiveRecordList
+                columns={['Name', 'Email', 'Phone']}
+                rows={patients.map((patient) => ({
+                  key: patient.id,
+                  cells: [
+                    <Typography fontWeight={700}>
+                      {patient.firstName} {patient.lastName}
+                    </Typography>,
+                    patient.email,
+                    patient.phone || '—',
+                  ],
+                  actions: (
+                    <Button
+                      onClick={() => {
+                        setEditingUser(patient.id);
+                        setUser({
+                          firstName: patient.firstName,
+                          lastName: patient.lastName,
+                          email: patient.email,
+                          phone: patient.phone || '',
+                          password: '',
+                          role: patient.role,
+                        });
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  ),
+                }))}
+              />
             </CardContent>
           </Card>
         ) : null}

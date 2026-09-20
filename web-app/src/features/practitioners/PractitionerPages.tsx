@@ -56,9 +56,14 @@ export function PractitionerListPage() {
                   Dr. {item.firstName} {item.lastName}
                 </Typography>
                 <Chip
+                  data-testid="specialty-badge"
                   label={item.specialty}
-                  color="primary"
-                  sx={{ mt: 1, bgcolor: 'primary.light' }}
+                  sx={{
+                    mt: 1,
+                    bgcolor: 'primary.light',
+                    color: 'primary.dark',
+                    border: '1px solid #C9DCEB',
+                  }}
                 />
                 <Typography sx={{ mt: 1 }}>
                   {item.specialty} · {item.organization}
@@ -161,8 +166,8 @@ export function PractitionerDetailPage() {
                   key={slot.id}
                   sx={{
                     p: 2,
-                    bgcolor: '#f8fcfb',
-                    borderColor: 'rgba(15,118,110,.16)',
+                    bgcolor: '#F7FAFC',
+                    borderColor: '#D9E5EE',
                     '&:hover': { transform: 'translateY(-1px)' },
                   }}
                 >

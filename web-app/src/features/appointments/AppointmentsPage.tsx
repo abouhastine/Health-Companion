@@ -102,7 +102,7 @@ export function AppointmentsPage() {
                   <SectionCard
                     key={item.id}
                     sx={{
-                      borderLeft: section.title === 'Upcoming' ? '4px solid #0f766e' : undefined,
+                      borderLeft: section.title === 'Upcoming' ? '4px solid #123A5A' : undefined,
                     }}
                   >
                     <Stack

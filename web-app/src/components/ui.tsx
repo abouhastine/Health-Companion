@@ -1,10 +1,5 @@
 import type { ReactNode } from 'react';
-import {
-  DescriptionOutlined,
-  EventAvailableOutlined,
-  InfoOutlined,
-  AutoAwesomeOutlined,
-} from '@mui/icons-material';
+import { DescriptionOutlined, EventAvailableOutlined, InfoOutlined } from '@mui/icons-material';
 import {
   Box,
   Chip,
@@ -19,7 +14,6 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import wellnessSheet from '../assets/illustrations/wellness-care-sheet.png';
 
 export function PageHeader({
   eyebrow,
@@ -80,8 +74,7 @@ export function SectionCard({
     <Paper
       sx={{
         p: { xs: 2.25, sm: 3 },
-        borderRadius: 4,
-        transition: 'transform .18s ease, box-shadow .18s ease',
+        borderRadius: 2.5,
         ...sx,
       }}
     >
@@ -129,33 +122,16 @@ export function EmptyState({
       : kind === 'document'
         ? DescriptionOutlined
         : InfoOutlined;
-  const illustrationPosition =
-    kind === 'appointment' ? 'center bottom' : kind === 'document' ? 'center' : 'center top';
   return (
     <Paper
       sx={{
         p: { xs: 3, sm: 5 },
         textAlign: 'center',
         borderStyle: 'dashed',
-        bgcolor: 'rgba(255,255,255,.78)',
-        borderRadius: 4,
+        bgcolor: 'background.paper',
+        borderRadius: 2.5,
       }}
     >
-      <Box
-        component="img"
-        src={wellnessSheet}
-        alt=""
-        sx={{
-          width: 92,
-          height: 76,
-          objectFit: 'cover',
-          objectPosition: illustrationPosition,
-          borderRadius: 2,
-          display: 'block',
-          mx: 'auto',
-          mb: 1,
-        }}
-      />
       <Icon color="primary" sx={{ fontSize: 40, mb: 1 }} />
       <Typography variant="h6">{title}</Typography>
       <Typography color="text.secondary" sx={{ maxWidth: 430, mx: 'auto', mt: 1 }}>
@@ -180,9 +156,9 @@ export function FormSection({
     <Box
       sx={{
         p: { xs: 2, sm: 2.5 },
-        borderRadius: 3,
-        bgcolor: 'rgba(223,245,240,.38)',
-        border: '1px solid rgba(15,118,110,.10)',
+        borderRadius: 2,
+        bgcolor: 'primary.light',
+        border: '1px solid #D9E5EE',
       }}
     >
       <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 2 }}>
@@ -223,17 +199,6 @@ export function PageLoading() {
   );
 }
 
-export function FeatureBadge({ children }: { children: ReactNode }) {
-  return (
-    <Chip
-      icon={<AutoAwesomeOutlined />}
-      label={children}
-      color="secondary"
-      sx={{ color: 'secondary.dark', bgcolor: 'secondary.light' }}
-    />
-  );
-}
-
 export function ResponsiveRecordList({
   columns,
   rows,
@@ -254,7 +219,7 @@ export function ResponsiveRecordList({
       >
         <Table size="small" aria-label="Management records">
           <TableHead>
-            <TableRow sx={{ bgcolor: 'rgba(223,245,240,.46)' }}>
+            <TableRow sx={{ bgcolor: '#F1F5F8' }}>
               {columns.map((column) => (
                 <TableCell key={column} sx={{ fontWeight: 800, color: 'text.secondary' }}>
                   {column}

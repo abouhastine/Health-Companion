@@ -30,7 +30,6 @@ import {
 } from '@mui/material';
 import { NavLink, useLocation } from 'react-router-dom';
 import { clearSession, role } from '../services/session';
-import wellnessSheet from '../assets/illustrations/wellness-care-sheet.png';
 
 type NavItem = { label: string; to: string; icon: ReactNode };
 
@@ -46,7 +45,7 @@ function Brand() {
           color: 'white',
           display: 'grid',
           placeItems: 'center',
-          boxShadow: '0 7px 16px rgba(22, 122, 114, .22)',
+          boxShadow: '0 4px 12px rgba(18, 58, 90, .18)',
         }}
       >
         <FavoriteBorder fontSize="small" />
@@ -168,7 +167,7 @@ export function AppShell({ children }: PropsWithChildren) {
             width: 274,
             height: '100vh',
             bgcolor: '#fff',
-            borderRight: '1px solid #dce9e7',
+            borderRight: '1px solid #DCE3E9',
           }}
         >
           <Sidebar />
@@ -183,7 +182,7 @@ export function AppShell({ children }: PropsWithChildren) {
             height: 68,
             px: 2,
             bgcolor: 'rgba(255,255,255,.93)',
-            borderBottom: '1px solid #dce9e7',
+            borderBottom: '1px solid #DCE3E9',
             position: 'sticky',
             top: 0,
             zIndex: 10,
@@ -239,8 +238,7 @@ export function AuthShell({ children }: PropsWithChildren) {
           justifyContent: 'space-between',
           p: { md: 5, lg: 7 },
           color: 'white',
-          background:
-            'radial-gradient(circle at 15% 15%, #3aa79f 0, transparent 34%), linear-gradient(145deg, #0d514e, #183c5d)',
+          background: 'linear-gradient(145deg, #0B2942, #174A6D)',
         }}
       >
         <Stack direction="row" spacing={1} alignItems="center">
@@ -248,20 +246,6 @@ export function AuthShell({ children }: PropsWithChildren) {
           <Typography fontWeight={850}>Health Companion</Typography>
         </Stack>
         <Box maxWidth={440}>
-          <Box
-            component="img"
-            src={wellnessSheet}
-            alt=""
-            sx={{
-              width: 150,
-              height: 150,
-              objectFit: 'cover',
-              objectPosition: 'center top',
-              borderRadius: '50%',
-              mb: 2,
-              display: { md: 'block', lg: 'none' },
-            }}
-          />
           <Typography variant="h3" fontSize={{ md: '2.7rem', lg: '3.4rem' }}>
             A clearer view of your care.
           </Typography>
@@ -275,20 +259,6 @@ export function AuthShell({ children }: PropsWithChildren) {
           <Typography color="rgba(255,255,255,.62)" variant="body2">
             Private by design. Health information, not medical advice.
           </Typography>
-          <Box
-            component="img"
-            src={wellnessSheet}
-            alt=""
-            sx={{
-              width: 152,
-              height: 152,
-              objectFit: 'cover',
-              objectPosition: 'center top',
-              borderRadius: 5,
-              display: { md: 'none', lg: 'block' },
-              opacity: 0.96,
-            }}
-          />
         </Stack>
       </Box>
       <Box sx={{ display: 'grid', placeItems: 'center', p: { xs: 2, sm: 5 } }}>{children}</Box>

@@ -1,24 +1,23 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, Stack, Typography } from '@mui/material';
-import { CalendarMonthOutlined, DescriptionOutlined } from '@mui/icons-material';
+import { Box, Button, Divider, Stack, Typography } from '@mui/material';
+import {
+  CalendarMonthOutlined,
+  DescriptionOutlined,
+  EastOutlined,
+  ShieldOutlined,
+} from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { ErrorMessage } from '../../components/ErrorMessage';
-import { FeatureBadge, PageHeader, SectionCard } from '../../components/ui';
-import wellnessSheet from '../../assets/illustrations/wellness-care-sheet.png';
+import { PageHeader, SectionCard } from '../../components/ui';
 import { AppShell } from '../../layouts/AppShell';
 import { call } from '../../services/apiClient';
 import type { Appointment, Document, UserProfile } from '../../types/domain';
 
-type HomeData = {
-  profile: UserProfile;
-  appointments: Appointment[];
-  documents: Document[];
-};
+type HomeData = { profile: UserProfile; appointments: Appointment[]; documents: Document[] };
 
 export function PatientHomePage() {
   const [data, setData] = useState<HomeData>();
   const [error, setError] = useState('');
-
   useEffect(() => {
     void Promise.all([
       call<UserProfile>('/api/users/me'),
@@ -28,114 +27,163 @@ export function PatientHomePage() {
       .then(([profile, appointments, documents]) => setData({ profile, appointments, documents }))
       .catch(() => setError('Unable to load your health companion overview.'));
   }, []);
-
   const nextAppointment = data?.appointments.reduce<Appointment | undefined>(
     (next, appointment) => {
       const start = new Date(appointment.slot.startAt).getTime();
       if (appointment.status !== 'CONFIRMED' || start <= Date.now()) return next;
-      if (!next || start < new Date(next.slot.startAt).getTime()) return appointment;
-      return next;
+      return !next || start < new Date(next.slot.startAt).getTime() ? appointment : next;
     },
     undefined,
   );
   const latestResult = data?.documents[0];
-
   return (
     <AppShell>
       <PageHeader
-        eyebrow="Personal care space"
-        title={data ? `Welcome back, ${data.profile.firstName}` : 'My health companion'}
-        description="Keep track of the care that matters today."
+        eyebrow="Patient space"
+        title={data ? `Hello, ${data.profile.firstName}` : 'My care'}
       />
       <ErrorMessage message={error} />
-      {!data && !error ? <Typography>Loading your overview…</Typography> : null}
+      {!data && !error ? <Typography>Loading your care overview…</Typography> : null}
       {data ? (
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
-            gap: 2,
-          }}
-        >
-          <SectionCard
-            title="Next appointment"
-            sx={{ height: '100%', bgcolor: '#edfaf7', borderColor: 'rgba(15,118,110,.16)' }}
-            action={<CalendarMonthOutlined color="primary" />}
-          >
-            <Typography color="text.secondary" sx={{ minHeight: 50 }}>
-              {nextAppointment
-                ? `Dr. ${nextAppointment.practitioner.lastName} · ${new Date(
-                    nextAppointment.slot.startAt,
-                  ).toLocaleString()}`
-                : 'No upcoming appointment.'}
-            </Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              <Button component={Link} to="/practitioners" variant="contained">
-                Find care
-              </Button>
-              <Button component={Link} to="/appointments">
-                All appointments
-              </Button>
-            </Stack>
-          </SectionCard>
-          <SectionCard
-            title="Latest medical result"
-            sx={{ height: '100%', bgcolor: '#f2f8fc', borderColor: 'rgba(67,134,168,.16)' }}
-            action={<DescriptionOutlined color="primary" />}
-          >
-            <Typography color="text.secondary" sx={{ minHeight: 50 }}>
-              {latestResult
-                ? `${latestResult.title} · ${latestResult.documentDate}`
-                : 'No medical result is available yet.'}
-            </Typography>
-            <Button
-              component={Link}
-              to={latestResult ? `/documents/${latestResult.id}` : '/documents'}
-              variant="outlined"
-            >
-              {latestResult ? 'Open latest result' : 'View my results'}
-            </Button>
-          </SectionCard>
-          <SectionCard
+        <Stack spacing={3}>
+          <Box
             sx={{
-              gridColumn: { md: '1 / -1' },
-              bgcolor: 'secondary.light',
-              border: 0,
-              overflow: 'hidden',
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              borderRadius: 3,
+              p: { xs: 3, sm: 4 },
             }}
           >
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              alignItems={{ sm: 'center' }}
-              justifyContent="space-between"
-              spacing={2}
+            <Typography
+              variant="overline"
+              sx={{ color: 'rgba(255,255,255,.66)', fontWeight: 800, letterSpacing: '.1em' }}
             >
-              <Box>
-                <FeatureBadge>Health assistant</FeatureBadge>
-                <Typography variant="h6">Need help understanding health information?</Typography>
-                <Typography color="text.secondary">
-                  Ask for a clear, source-grounded explanation of your available results.
+              CARE PLAN
+            </Typography>
+            <Typography component="h2" variant="h4" sx={{ mt: 0.5 }}>
+              Your care today
+            </Typography>
+            {nextAppointment ? (
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={3}
+                alignItems={{ md: 'center' }}
+                sx={{ mt: 3 }}
+              >
+                <Box sx={{ minWidth: 150, borderLeft: '2px solid rgba(255,255,255,.38)', pl: 2 }}>
+                  <Typography fontWeight={700}>
+                    {new Date(nextAppointment.slot.startAt).toLocaleDateString([], {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </Typography>
+                  <Typography sx={{ color: 'rgba(255,255,255,.72)' }}>
+                    {new Date(nextAppointment.slot.startAt).toLocaleTimeString([], {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
+                  </Typography>
+                </Box>
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography variant="h6">
+                    Dr. {nextAppointment.practitioner.firstName}{' '}
+                    {nextAppointment.practitioner.lastName}
+                  </Typography>
+                  <Typography sx={{ color: 'rgba(255,255,255,.72)' }}>
+                    {nextAppointment.practitioner.specialty}
+                  </Typography>
+                </Box>
+                <Button
+                  component={Link}
+                  to="/appointments"
+                  variant="contained"
+                  color="inherit"
+                  endIcon={<EastOutlined />}
+                  sx={{ bgcolor: '#fff', color: 'primary.dark', '&:hover': { bgcolor: '#EEF3F7' } }}
+                >
+                  View appointment
+                </Button>
+              </Stack>
+            ) : (
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                alignItems={{ sm: 'center' }}
+                justifyContent="space-between"
+                spacing={2}
+                sx={{ mt: 2 }}
+              >
+                <Typography sx={{ color: 'rgba(255,255,255,.76)' }}>
+                  No appointment is scheduled. Find the right clinician when you are ready.
                 </Typography>
-              </Box>
-              <Button component={Link} to="/assistant" variant="contained">
-                Open assistant
+                <Button
+                  component={Link}
+                  to="/practitioners"
+                  variant="contained"
+                  color="inherit"
+                  sx={{ bgcolor: '#fff', color: 'primary.dark' }}
+                >
+                  Find care
+                </Button>
+              </Stack>
+            )}
+          </Box>
+          <Box
+            sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.05fr .95fr' }, gap: 2 }}
+          >
+            <SectionCard
+              title="Health record"
+              action={<DescriptionOutlined color="primary" />}
+              sx={{ height: '100%' }}
+            >
+              <Typography color="text.secondary">
+                {latestResult
+                  ? `${latestResult.title} · ${latestResult.documentDate}`
+                  : 'Your medical reports will appear here when they are available.'}
+              </Typography>
+              <Button
+                component={Link}
+                to={latestResult ? `/documents/${latestResult.id}` : '/documents'}
+                variant="outlined"
+                sx={{ mt: 2 }}
+              >
+                {latestResult ? 'Review latest result' : 'View medical results'}
               </Button>
-              <Box
-                component="img"
-                src={wellnessSheet}
-                alt=""
-                sx={{
-                  width: 100,
-                  height: 100,
-                  objectFit: 'cover',
-                  objectPosition: 'center 100%',
-                  borderRadius: 3,
-                  display: { xs: 'none', md: 'block' },
-                }}
-              />
-            </Stack>
-          </SectionCard>
-        </Box>
+            </SectionCard>
+            <SectionCard
+              title="Quick actions"
+              action={<CalendarMonthOutlined color="primary" />}
+              sx={{ height: '100%' }}
+            >
+              <Stack divider={<Divider flexItem />} spacing={1}>
+                <Button
+                  component={Link}
+                  to="/practitioners"
+                  endIcon={<EastOutlined />}
+                  sx={{ justifyContent: 'space-between' }}
+                >
+                  Find a clinician
+                </Button>
+                <Button
+                  component={Link}
+                  to="/assistant"
+                  endIcon={<EastOutlined />}
+                  sx={{ justifyContent: 'space-between' }}
+                >
+                  Ask the health assistant
+                </Button>
+              </Stack>
+            </SectionCard>
+          </Box>
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary', px: 0.5 }}
+          >
+            <ShieldOutlined fontSize="small" color="primary" />
+            <Typography variant="body2">
+              Your health information stays private and under your control.
+            </Typography>
+          </Box>
+        </Stack>
       ) : null}
     </AppShell>
   );
