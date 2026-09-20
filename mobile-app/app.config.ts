@@ -14,7 +14,7 @@ const config: ExpoConfig = {
     bundleIdentifier: 'com.healthcompanion.mobile',
     infoPlist: local ? { NSAppTransportSecurity: { NSAllowsArbitraryLoads: true } } : undefined,
   },
-  android: { package: 'com.healthcompanion.mobile', usesCleartextTraffic: local || undefined },
+  android: { package: 'com.healthcompanion.mobile', usesCleartextTraffic: local || undefined } as ExpoConfig['android'] & { usesCleartextTraffic?: boolean },
   plugins: [
     'expo-router',
     ['expo-secure-store', { faceIDPermission: 'Use Face ID to unlock Health Companion.' }],
