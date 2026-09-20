@@ -1,7 +1,7 @@
 import type { Chat, MobileAuth } from './domain';
+import { apiBaseUrl } from './config';
 
-const baseUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '');
-if (!baseUrl) console.warn('EXPO_PUBLIC_API_URL is required for mobile beta builds.');
+const baseUrl = () => apiBaseUrl(process.env);
 
 let accessToken: string | undefined;
 export const setAccessToken = (value?: string) => { accessToken = value; };
@@ -12,7 +12,7 @@ async function error(response: Response) {
 }
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${baseUrl}${path}`, {
+  const response = await fetch(`${baseUrl()}${path}`, {
     ...init,
     headers: { Accept: 'application/json', ...(init.body ? { 'Content-Type': 'application/json' } : {}), ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...init.headers },
   });
@@ -27,11 +27,11 @@ export const mobileLogout = (refreshToken: string) => api<void>('/api/auth/mobil
 
 export function documentRequest(id: number) {
   if (!accessToken) throw new Error('Please sign in again.');
-  return { uri: `${baseUrl}/api/documents/${id}/download`, headers: { Authorization: `Bearer ${accessToken}` } };
+  return { uri: `${baseUrl()}/api/documents/${id}/download`, headers: { Authorization: `Bearer ${accessToken}` } };
 }
 
 export async function streamDocumentChat(path: string, body: object, onToken: (token: string) => void): Promise<Chat> {
-  const response = await fetch(`${baseUrl}${path}`, { method: 'POST', body: JSON.stringify(body), headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json', Accept: 'text/event-stream' } });
+  const response = await fetch(`${baseUrl()}${path}`, { method: 'POST', body: JSON.stringify(body), headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json', Accept: 'text/event-stream' } });
   if (!response.ok || !response.body) throw new Error(await error(response));
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
