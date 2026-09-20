@@ -14,8 +14,18 @@ production use HTTPS only.
 
 ## Local setup
 
-Start the local API from the repository root using the standard demo setup, then run the backend on
-port 8080. In another terminal:
+Start the local API on port 8080 from the repository root. This example uses the local Ollama
+profile; use `demo,openai` only after supplying its required key:
+
+```bash
+cp .env.example .env
+docker compose up -d --wait
+cd backend
+set -a && source ../.env && set +a
+SPRING_PROFILES_ACTIVE=demo,local-ai ./mvnw spring-boot:run
+```
+
+In another terminal:
 
 ```bash
 cd mobile-app
